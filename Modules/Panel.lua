@@ -579,7 +579,7 @@ function Panel:UpdateQuests(container)
         container:AddChild(charLabel)
 
         for _, q in ipairs(C.TRACKED_QUESTS) do
-            AddQuestRow(container, "  " .. q.name, charData[q.name])
+            AddQuestRow(container, "  " .. q.name, charData[q.name], q.isHoliday)
         end
     end
 end
