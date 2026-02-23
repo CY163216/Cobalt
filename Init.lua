@@ -60,7 +60,7 @@ C:AddLib("LDBI", "LibDBIcon-1.0")
 function C:OnInitialize()
     local AceDB = C.Libs.AceDB
     self.db = AceDB:New("CobaltDB", self.DF, true)
-    
+
     -- Setup Proxy
     local D = Cobalt[2]
     wipe(D) 
@@ -68,7 +68,7 @@ function C:OnInitialize()
         __index = function(_, key) return self.db.global[key] end,
         __newindex = function(_, key, value) self.db.global[key] = value end,
     })
-    
+
     self.D = D
     self:RegisterChatCommand("cobalt", "SlashHandler")
 end
