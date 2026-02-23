@@ -18,9 +18,7 @@ local DECOR_MAP = C.DECOR_LUMBER_MAP
 local DEFAULT_COLOR = "|cffffffff"
 local STOCK_COLOR = "|cff00ff00"
 
-----------------------------------------------------
 -- Configuration & Constants
-----------------------------------------------------
 local UI_CONFIG = {
     WIDTH = 650,
     HEIGHT = 550,
@@ -41,9 +39,7 @@ local NAV_MENU = {
     { name = "Dev",        method = "UpdateDev" }
 }
 
-----------------------------------------------------
 -- Content Management (The Dispatcher)
-----------------------------------------------------
 function Panel:RefreshContent()
     if not self.contentFrame then return end
     self.contentFrame:ReleaseChildren()
@@ -102,9 +98,7 @@ function Panel:UpdateNavigation()
     end
 end
 
-----------------------------------------------------
---- DECOR TAB ---
-----------------------------------------------------
+--- DECOR TAB
 function Panel:UpdateDecor(container)
     local header = AceGUI:Create("Heading")
     header:SetText("Decor & Price Tracker")
@@ -198,9 +192,7 @@ function Panel:UpdateDecor(container)
     end
 end
 
-----------------------------------------------------
---- BINDPAD SYNC TAB ---
-----------------------------------------------------
+--- BINDPAD SYNC TAB
 function Panel:UpdateBindPad(container)
     local config = C.CLASS_MAINS[C.myclass]
     local header = AceGUI:Create("Heading")
@@ -237,9 +229,7 @@ function Panel:UpdateBindPad(container)
     end
 end
 
-----------------------------------------------------
---- WEEKLY VAULT TAB ---
-----------------------------------------------------
+--- WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
     local catOrder = {"Raid", "Dungeon", "World"}
     local thresholds = {
@@ -361,9 +351,7 @@ function Panel:UpdateVault(container)
     end
 end
 
-----------------------------------------------------
---- ELVUI PROFILE TAB ---
-----------------------------------------------------
+--- ELVUI PROFILE TAB
 function Panel:UpdateElvProfile(container)
     local currentName = C.mynameRealm
 
@@ -417,9 +405,7 @@ function Panel:UpdateElvProfile(container)
     end
 end
 
-----------------------------------------------------
---- DEV PROFILE TAB ---
-----------------------------------------------------
+--- DEV PROFILE TAB
 function Panel:UpdateDev(container)
     local dev = C.DB.dev
     if not dev then return end
@@ -528,15 +514,15 @@ function Panel:UpdateDev(container)
     container:AddChild(reloadBtn)
 end
 
-----------------------------------------------------
---- QUEST TRACKER TAB ---
-----------------------------------------------------
+--- QUEST TRACKER TAB
 function Panel:UpdateQuests(container)
     local allQuestData = C.DB.quests or {}
     local currentCharacter = C.mynameRealm
 
     -- Helper to create a two-column row matching the ElvUI style
-    local function AddQuestRow(parent, name, isDone)
+    local function AddQuestRow(parent, name, isDone, isHoliday)
+        -- Skip holiday quests that are not activce
+        if isHoliday and not C:IsHolidayActive(name) then return end
         local row = AceGUI:Create("SimpleGroup")
         row:SetFullWidth(true)
         row:SetLayout("Flow")
@@ -565,7 +551,7 @@ function Panel:UpdateQuests(container)
 
     local currentData = allQuestData[currentCharacter] or {}
     for _, q in ipairs(C.TRACKED_QUESTS) do
-        AddQuestRow(container, q.name, currentData[q.name])
+        AddQuestRow(container, q.name, currentData[q.name], q.isHoliday)
     end
 
     -- 2. Other Characters Section
@@ -598,9 +584,7 @@ function Panel:UpdateQuests(container)
     end
 end
 
-----------------------------------------------------
---- GENERAL TAB ---
-----------------------------------------------------
+--- GENERAL TAB
 function Panel:UpdateGeneral(container)
     local header = AceGUI:Create("Heading")
     header:SetText("Cobalt Dashboard")
@@ -638,9 +622,7 @@ function Panel:UpdateGeneral(container)
     container:AddChild(debugButton)
 end
 
-----------------------------------------------------
 -- Main Frame Construction
-----------------------------------------------------
 function Panel:Create()
     if self.Frame then return end
 
@@ -700,9 +682,7 @@ function Panel:Create()
     self:RefreshContent()
 end
 
-----------------------------------------------------
 -- Module Visibility
-----------------------------------------------------
 function Panel:Toggle()
     -- If the frame was released (closed via X), recreate it
     if not self.Frame then 
@@ -728,4 +708,3 @@ function Panel:OnInitialize()
         self.Frame:Hide() 
     end
 end
-

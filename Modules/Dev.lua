@@ -61,6 +61,12 @@ function Dev:Testdb()
     C:Print(self, "COUNTER:", C.DB.count)
 end
 
+function Dev:CheckLoveHoliday()
+    local holiday = "Love is in the Air"
+    local result = tostring(C:IsHolidayActive(holiday))
+    C:Print(self, holiday, "is active:", result)
+end
+
 
 -- =====================================================
 -- Dev MANIFEST
@@ -70,6 +76,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "Test Data", func = "AddTestData", slash = "addtest" },
     { name = "Wipe Test Data", func = "WipeTestData", slash = "wipetest" },
     { name = "testdb", func = "Testdb", slash = "testdb" },
+    { name = "lovecheck", func = "CheckLoveHoliday", slash = "love" },
 
 }
 
