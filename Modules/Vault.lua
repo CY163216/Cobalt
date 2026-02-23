@@ -1,4 +1,4 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local WV = C:GetModule('Vault')
 local AceGUI = C.Libs.AceGUI
 
@@ -13,7 +13,7 @@ function WV:Check()
     local charKey = C.mynameRealm
     if not charKey then return end
 
-    D.vault = D.vault or {}
+    C.DB.vault = C.DB.vault or {}
 
     local charData = {}
     local totalProgress = 0
@@ -43,11 +43,11 @@ function WV:Check()
 
     -- If total progress across all categories is > 0, save the data
     if totalProgress > 0 then
-        D.vault[charKey] = charData
+        C.DB.vault[charKey] = charData
         C:Debug(self, "Updated for:", charKey)
     else
         -- Wipe the character key if they have 0 progress
-        D.vault[charKey] = nil
+        C.DB.vault[charKey] = nil
         C:Debug(self, "(Zero Progress) for:", charKey)
     end
 end

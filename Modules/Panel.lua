@@ -1,4 +1,4 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local Panel = C:GetModule("Panel")
 local BP = C:GetModule("BindPad")
 local DC = C:GetModule("Decor")
@@ -213,7 +213,7 @@ function Panel:UpdateBindPad(container)
         return
     end
 
-    local currentVer = D.bindPadVersions and D.bindPadVersions[C.mynameRealm] or 0
+    local currentVer = C.DB.bindPadVersions and C.DB.bindPadVersions[C.mynameRealm] or 0
     local isMain = (C.mynameRealm == config.main)
     local statusText = isMain and "|cff00ff00Main Character|r" or "|cff00aaffAlt Character|r"
 
@@ -229,7 +229,7 @@ function Panel:UpdateBindPad(container)
         btn:SetText("Force Bind Sync")
         btn:SetWidth(180)
         btn:SetCallback("OnClick", function()
-            if D.bindPadVersions then D.bindPadVersions[C.mynameRealm] = 0 end
+            if C.DB.bindPadVersions then C.DB.bindPadVersions[C.mynameRealm] = 0 end
             BP:SyncBinds()
             self:RefreshContent()
         end)
@@ -249,18 +249,18 @@ function Panel:UpdateVault(container)
     }
     local charKey = C.mynameRealm
 
-    if not D.vault then return end
+    if not C.DB.vault then return end
 
     -- 1. Gather Alts
     local others = {}
-    for name in pairs(D.vault) do
+    for name in pairs(C.DB.vault) do
         if name ~= charKey then table.insert(others, name) end
     end
 
     -- 2. Sort Alts by total aggregate progress
     table.sort(others, function(a, b)
         local function GetTotalProg(name)
-            local data = D.vault[name]
+            local data = C.DB.vault[name]
             local total = 0
             if type(data) == "table" then
                 for _, cat in ipairs(catOrder) do
@@ -287,7 +287,7 @@ function Panel:UpdateVault(container)
     -- 4. Display
     for i, name in ipairs(sortedNames) do
         local isCurrent = (name == charKey)
-        local charData = D.vault[name]
+        local charData = C.DB.vault[name]
         local isDummy = (isCurrent and (not charData or charData == "dummy"))
 
         -- Header: Green for current, default for others
@@ -408,8 +408,8 @@ function Panel:UpdateElvProfile(container)
     otherHeader:SetFullWidth(true)
     container:AddChild(otherHeader)
 
-    if D.elvui then
-        for name, profile in pairs(D.elvui) do
+    if C.DB.elvui then
+        for name, profile in pairs(C.DB.elvui) do
             if name ~= currentName then
                 AddCharacterRow(container, name, profile, false)
             end
@@ -421,7 +421,7 @@ end
 --- DEV PROFILE TAB ---
 ----------------------------------------------------
 function Panel:UpdateDev(container)
-    local dev = D.dev
+    local dev = C.DB.dev
     if not dev then return end
 
     -- Ensure the filter table exists in your SavedVariables
@@ -532,7 +532,7 @@ end
 --- QUEST TRACKER TAB ---
 ----------------------------------------------------
 function Panel:UpdateQuests(container)
-    local allQuestData = D.quests or {}
+    local allQuestData = C.DB.quests or {}
     local currentCharacter = C.mynameRealm
 
     -- Helper to create a two-column row matching the ElvUI style

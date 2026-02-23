@@ -1,4 +1,4 @@
-local C = unpack(Cobalt)
+local C = select(2, ...)
 local L = C:GetModule("Lumber")
 
 local NORMAL_FONT_COLOR = NORMAL_FONT_COLOR

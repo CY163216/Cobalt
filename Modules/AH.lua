@@ -1,13 +1,13 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local M = C:GetModule("AH")
 
 function M:IsCleared()
-    return D.AH and D.AH[C.mynameRealm] == true
+    return C.DB.AH and C.DB.AH[C.mynameRealm] == true
 end
 
 function M:MarkAsDone(reason)
-    D.AH = D.AH or {}
-    D.AH[C.mynameRealm] = true
+    C.DB.AH = C.DB.AH or {}
+    C.DB.AH[C.mynameRealm] = true
 
     self:UnregisterAllEvents()
 

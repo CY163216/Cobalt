@@ -1,12 +1,12 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local M = C:GetModule("Quests")
 
 function M:UpdateQuestStatus()
     local charKey = C.mynameRealm
     if not charKey then return end
 
-    D.quests = D.quests or {}
-    D.quests[charKey] = D.quests[charKey] or {}
+    C.DB.quests = C.DB.quests or {}
+    C.DB.quests[charKey] = C.DB.quests[charKey] or {}
     local faction = C.myfaction -- Cache "Horde" or "Alliance"
 
     for _, q in ipairs(C.TRACKED_QUESTS) do
@@ -21,10 +21,10 @@ function M:UpdateQuestStatus()
 
         -- 3. Update status in SavedVariables (D)
         if isAvailable and questID then
-            D.quests[charKey][q.name] = C_QuestLog.IsQuestFlaggedCompleted(questID)
+            C.DB.quests[charKey][q.name] = C_QuestLog.IsQuestFlaggedCompleted(questID)
         else
             -- Clean up data for inactive holidays or missing IDs
-            D.quests[charKey][q.name] = nil
+            C.DB.quests[charKey][q.name] = nil
         end
     end
 

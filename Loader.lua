@@ -1,5 +1,4 @@
-local Cobalt = select(2, ...)
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 
 -- =====================================================
 -- Constants
@@ -404,16 +403,16 @@ function C:Print(module, ...)
 end
 
 function C:Debug(module, ...)
-    if not (D and D.dev and D.dev.debugMode) then return end
+    if not (D and C.DB.dev and C.DB.dev.debugMode) then return end
 
     local name = (type(module) == "table" and module.GetName) and module:GetName() or tostring(module or "CX")
     local msg = ...
 
-    if D.dev.showModuleStatus == false and (msg == C.MODULE_ENABLED or msg == C.MODULE_DISABLED) then 
+    if C.DB.dev.showModuleStatus == false and (msg == C.MODULE_ENABLED or msg == C.MODULE_DISABLED) then 
         return 
     end
 
-    local filter = D.dev.moduleFilter
+    local filter = C.DB.dev.moduleFilter
 
     if not filter or next(filter) == nil or filter[name] then
         Log("|cffFF79AC[Cobalt]|r", "00FF00", module, ...)

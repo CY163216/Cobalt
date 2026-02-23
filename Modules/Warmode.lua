@@ -1,5 +1,5 @@
 
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local WM = C:GetModule('Warmode')
 local LSM = C.Libs.LSM
 

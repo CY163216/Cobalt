@@ -1,11 +1,11 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local Dev = C:GetModule("Dev")
 
 ----------------------------------------------------
 --- DEV FUNCTIONS
 ----------------------------------------------------
 function Dev:CleanupInactiveHolidays()
-    if not D.quests then return end
+    if not C.DB.quests then return end
 
     -- 1. Create a quick lookup for active holidays to avoid redundant API calls
     local activeHolidays = {}
@@ -16,7 +16,7 @@ function Dev:CleanupInactiveHolidays()
     end
 
     -- 2. Iterate through every character in your SavedVariables
-    for charKey, questList in pairs(D.quests) do
+    for charKey, questList in pairs(C.DB.quests) do
         -- 3. Check every quest stored for that character
         for questName, _ in pairs(questList) do
 
@@ -25,7 +25,7 @@ function Dev:CleanupInactiveHolidays()
                 if qDef.name == questName and qDef.isHoliday then
                     -- 4. If it's a holiday and NOT active, wipe it from the DB
                     if not activeHolidays[questName] then
-                        D.quests[charKey][questName] = nil
+                        C.DB.quests[charKey][questName] = nil
                         C:Debug(self, "Cleaned up", questName, "for", charKey)
                     end
                 end
@@ -36,11 +36,11 @@ function Dev:CleanupInactiveHolidays()
 end
 
 function Dev:AddTestData()
-    D.testData = D.testData or {}
+    C.DB.testData = C.DB.testData or {}
 
-    local index = #D.testData + 1
+    local index = #C.DB.testData + 1
 
-    D.testData[index] = {
+    C.DB.testData[index] = {
         time = time(),
         value = math.random(1, 100),
     }
@@ -49,10 +49,18 @@ function Dev:AddTestData()
 end
 
 function Dev:WipeTestData()
-    D.testData = nil
+    C.DB.testData = nil
 
     C:Print(self, "|cffff0000Test data has been completely wiped.|r")
 end
+
+function Dev:Testdb()
+    C.DB = C.DB or {}
+    C.DB.count = C.DB.count or 0
+    C.DB.count = C.DB.count+1
+    C:Print(self, "COUNTER:", C.DB.count)
+end
+
 
 -- =====================================================
 -- Dev MANIFEST
@@ -61,6 +69,8 @@ Dev.COMMAND_MANIFEST = {
     { name = "Clear Holidays", func = "CleanupInactiveHolidays", slash = "holidays" },
     { name = "Test Data", func = "AddTestData", slash = "addtest" },
     { name = "Wipe Test Data", func = "WipeTestData", slash = "wipetest" },
+    { name = "testdb", func = "Testdb", slash = "testdb" },
+
 }
 
 function Dev:SlashHandler(input)

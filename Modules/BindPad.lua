@@ -1,4 +1,4 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local M = C:GetModule("BindPad")
 
 -- HELPER: Convert "Name - Realm" to BindPad's "Realm_Name"
@@ -20,14 +20,14 @@ function M:SyncBinds()
     -- 1. Main Character Check
     if C.mynameRealm == config.main then
         C:Debug(self, "Main character detected. Skipping Sync.")
-        D.bindPadVersions = D.bindPadVersions or {}
-        D.bindPadVersions[C.mynameRealm] = config.version
+        C.DB.bindPadVersions = C.DB.bindPadVersions or {}
+        C.DB.bindPadVersions[C.mynameRealm] = config.version
         return
     end
 
     -- 2. Version Check
-    D.bindPadVersions = D.bindPadVersions or {}
-    local myCurrentVer = D.bindPadVersions[C.mynameRealm] or 0
+    C.DB.bindPadVersions = C.DB.bindPadVersions or {}
+    local myCurrentVer = C.DB.bindPadVersions[C.mynameRealm] or 0
 
     if config.version > myCurrentVer then
         local sourceKey = GetBindPadKey(config.main)
@@ -47,7 +47,7 @@ function M:SyncBinds()
             -- API call uses the key WITHOUT the prefix
             BindPadCore.DoCopyFrom(sourceKey)
 
-            D.bindPadVersions[C.mynameRealm] = config.version
+            C.DB.bindPadVersions[C.mynameRealm] = config.version
         else
             C:Print(self, "|cffff0000Error:|r BindPad API not found.")
         end

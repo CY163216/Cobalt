@@ -1,4 +1,4 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local M = C:GetModule("Minimap")
 local P = C:GetModule("Panel", true)
 local LDB = C.Libs.LDB
@@ -19,15 +19,15 @@ function M:OnInitialize()
                     C:Print(self, "Error: Panel module not found.")
                 end
             elseif button == "RightButton" then
-                D.clickCount = (D.clickCount or 0) + 1
-                C:Print(self, "Right-clicks: " .. D.clickCount)
+                C.DB.clickCount = (C.DB.clickCount or 0) + 1
+                C:Print(self, "Right-clicks: " .. C.DB.clickCount)
             end
         end,
 
         OnTooltipShow = function(tooltip)
             tooltip:AddLine("Cobalt")
             tooltip:AddLine("|cff00ff00Left-Click:|r Toggle Panel")
-            tooltip:AddLine("|cff00ff00Right-Click:|r Count (" .. (D.clickCount or 0) .. ")")
+            tooltip:AddLine("|cff00ff00Right-Click:|r Count (" .. (C.DB.clickCount or 0) .. ")")
             tooltip:Show()
         end,
     })
@@ -51,12 +51,12 @@ end
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 
-    if not D.minimap then D.minimap = {} end
+    if not C.DB.minimap then C.DB.minimap = {} end
     if not LDBI:IsRegistered("Cobalt") then
-        LDBI:Register("Cobalt", self.obj, D.minimap)
+        LDBI:Register("Cobalt", self.obj, C.DB.minimap)
     end
 
-    LDBI:Refresh("Cobalt", D.minimap)
+    LDBI:Refresh("Cobalt", C.DB.minimap)
 
     C:RegisterChatCommand("cobalt", function(input) 
         self:HandleCommand(input) 

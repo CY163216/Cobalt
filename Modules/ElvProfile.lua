@@ -1,4 +1,4 @@
-local C, D = unpack(Cobalt)
+local C = select(2, ...)
 local M = C:GetModule("ElvProfile")
 
 -- Constants
@@ -24,13 +24,13 @@ StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
 
 -- Check if this character is already flagged with ANY status
 function M:GetProfileStatus()
-    return D.elvui and D.elvui[C.mynameRealm]
+    return C.DB.elvui and C.DB.elvui[C.mynameRealm]
 end
 
 -- Save specific status (e.g., true, "banker", "manual", or specific Profile Name)
 function M:SetProfileStatus(status)
-    D.elvui = D.elvui or {}
-    D.elvui[C.mynameRealm] = status
+    C.DB.elvui = C.DB.elvui or {}
+    C.DB.elvui[C.mynameRealm] = status
     C:Debug(self, "Status set to [|cff00ff00" .. tostring(status) .. "|r] in SavedVariables.")
 end
 
