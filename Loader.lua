@@ -27,6 +27,7 @@ C.EXPANSIONS = {
     ["SHADOWLANDS"]  = { color = "|cffffc6ff", label = "Shadowlands" },
     ["DRAGON_ISLES"] = { color = "|cffffe0b3", label = "Dragon Isles" },
     ["KHAZ_ALGAR"]   = { color = "|cffc4c4c4", label = "Khaz Algar" },
+    ["MIDNIGHT"]     = { color = "|cff8c47ff", label = "Midnight" },
 }
 
 C.LUMBER_DATA = {
@@ -41,6 +42,7 @@ C.LUMBER_DATA = {
     ["ARDEN"]      = { name = "Arden Lumber",       exp = C.EXPANSIONS.SHADOWLANDS },
     ["DRAGONPINE"] = { name = "Dragonpine Lumber",  exp = C.EXPANSIONS.DRAGON_ISLES },
     ["DORNIC"]     = { name = "Dornic Fir Lumber",  exp = C.EXPANSIONS.KHAZ_ALGAR },
+    ["THALASSIAN"] = { name = "Thalassian Lumber",  exp = C.EXPANSIONS.MIDNIGHT },
 }
 
 C.DECOR_LUMBER_MAP = {
@@ -287,6 +289,57 @@ C.DECOR_LUMBER_MAP = {
     [253039] = { type = C.LUMBER_DATA.DORNIC_FIR, count = 10 },
     [257102] = { type = C.LUMBER_DATA.DORNIC_FIR, count = 8 },
     [246709] = { type = C.LUMBER_DATA.DORNIC_FIR, count = 5 },
+    [246460] = { type = C.LUMBER_DATA.THALASSIAN, count = 30 }, -- Ambient Aethercharged Crystal
+    [262459] = { type = C.LUMBER_DATA.THALASSIAN, count = 14 }, -- Animated Sin'dorei Hammer
+    [262458] = { type = C.LUMBER_DATA.THALASSIAN, count = 14 }, -- Animated Sin'dorei Pick
+    [262471] = { type = C.LUMBER_DATA.THALASSIAN, count = 24 }, -- Bejeweled Sin'dorei Lyre
+    [262469] = { type = C.LUMBER_DATA.THALASSIAN, count = 36 }, -- Brilliant Phoenix Harp
+    [262491] = { type = C.LUMBER_DATA.THALASSIAN, count = 8  }, -- Chic Silvermoon Pillow
+    [262483] = { type = C.LUMBER_DATA.THALASSIAN, count = 24 }, -- Embossed Sin'dorei Fur Rug
+    [262461] = { type = C.LUMBER_DATA.THALASSIAN, count = 50 }, -- Endless Codex of Blooming Light
+    [262462] = { type = C.LUMBER_DATA.THALASSIAN, count = 50 }, -- Endless Codex of Nature's Grace
+    [262463] = { type = C.LUMBER_DATA.THALASSIAN, count = 50 }, -- Endless Codex of the Voidtouched
+    [262464] = { type = C.LUMBER_DATA.THALASSIAN, count = 22 }, -- Ensorcelled Broom
+    [262355] = { type = C.LUMBER_DATA.THALASSIAN, count = 6  }, -- Entropic Illuminant
+    [262473] = { type = C.LUMBER_DATA.THALASSIAN, count = 22 }, -- Floating Void-Touched Tome
+    [262455] = { type = C.LUMBER_DATA.THALASSIAN, count = 14 }, -- Font of Gleaming Water
+    [262474] = { type = C.LUMBER_DATA.THALASSIAN, count = 6  }, -- Gilded Eversong Book
+    [262451] = { type = C.LUMBER_DATA.THALASSIAN, count = 26 }, -- Gilded Silvermoon Anvil
+    [262457] = { type = C.LUMBER_DATA.THALASSIAN, count = 18 }, -- Gilded Silvermoon Hanger
+    [262475] = { type = C.LUMBER_DATA.THALASSIAN, count = 18 }, -- Harandar Signpost
+    [262484] = { type = C.LUMBER_DATA.THALASSIAN, count = 24 }, -- Haranir Canopy Bed
+    [262356] = { type = C.LUMBER_DATA.THALASSIAN, count = 6  }, -- Haranir Preserving Agents
+    [262476] = { type = C.LUMBER_DATA.THALASSIAN, count = 24 }, -- Homely Sin'dorei Shelf
+    [262477] = { type = C.LUMBER_DATA.THALASSIAN, count = 24 }, -- Homely Wall Shelves
+    [262485] = { type = C.LUMBER_DATA.THALASSIAN, count = 5  }, -- Leather-Bound Haranir Wall Shelf
+    [262478] = { type = C.LUMBER_DATA.THALASSIAN, count = 18 }, -- Lively Songwriter's Quill
+    [262492] = { type = C.LUMBER_DATA.THALASSIAN, count = 31 }, -- Lush Telogrus Carpet
+    [262493] = { type = C.LUMBER_DATA.THALASSIAN, count = 12 }, -- Luxurious Silvermoon Lounge Cushion
+    [262479] = { type = C.LUMBER_DATA.THALASSIAN, count = 50 }, -- Magnificent Towering Bookcase
+    [262452] = { type = C.LUMBER_DATA.THALASSIAN, count = 12 }, -- Masterwork Crafting Hammer
+    [262480] = { type = C.LUMBER_DATA.THALASSIAN, count = 6  }, -- Opened Sin'dorei Scroll
+    [262456] = { type = C.LUMBER_DATA.THALASSIAN, count = 18 }, -- Ornamental Silvermoon Hanger
+    [262486] = { type = C.LUMBER_DATA.THALASSIAN, count = 10 }, -- Plush Haranir Leather Pillow
+    [262494] = { type = C.LUMBER_DATA.THALASSIAN, count = 34 }, -- Plush Silvermoon Bed
+    [262460] = { type = C.LUMBER_DATA.THALASSIAN, count = 26 }, -- Ren'dorei Anvil
+    [262466] = { type = C.LUMBER_DATA.THALASSIAN, count = 24 }, -- Ren'dorei Crafting Framework
+    [262467] = { type = C.LUMBER_DATA.THALASSIAN, count = 26 }, -- Ren'dorei Lightpost
+    [262468] = { type = C.LUMBER_DATA.THALASSIAN, count = 10 }, -- Ren'dorei Postal Repository
+    [262465] = { type = C.LUMBER_DATA.THALASSIAN, count = 32 }, -- Ren'dorei Stargazer
+    [262470] = { type = C.LUMBER_DATA.THALASSIAN, count = 20 }, -- Spellbound Tome of Thalassian Magics
+    [262618] = { type = C.LUMBER_DATA.THALASSIAN, count = 22 }, -- Ren'dorei Void Projector
+    [262602] = { type = C.LUMBER_DATA.THALASSIAN, count = 28 }, -- Ren'dorei Warp Orb
+    [262481] = { type = C.LUMBER_DATA.THALASSIAN, count = 48 }, -- Replica Haranir Mural
+    [262453] = { type = C.LUMBER_DATA.THALASSIAN, count = 50 }, -- Resplendent Highborne Statue
+    [262482] = { type = C.LUMBER_DATA.THALASSIAN, count = 22 }, -- Restful Bronze Bench
+    [262354] = { type = C.LUMBER_DATA.THALASSIAN, count = 8  }, -- Riftstone
+    [253506] = { type = C.LUMBER_DATA.THALASSIAN, count = 63 }, -- Rootbound Vat
+    [262590] = { type = C.LUMBER_DATA.THALASSIAN, count = 10 }, -- Rootflame Campfire
+    [262495] = { type = C.LUMBER_DATA.THALASSIAN, count = 18 }, -- Self-Pouring Thalassian Sunwine
+    [262454] = { type = C.LUMBER_DATA.THALASSIAN, count = 18 }, -- Shining Sin'dorei Hourglass
+    [262487] = { type = C.LUMBER_DATA.THALASSIAN, count = 32 }, -- Silvermoon Curtains
+    [262500] = { type = C.LUMBER_DATA.THALASSIAN, count = 66 }, -- Silvermoon Spire Fountain
+    [262501] = { type = C.LUMBER_DATA.THALASSIAN, count = 20 }, -- Simple Haranir Table
 }
 
 C.CLASS_MAINS = {
