@@ -5,16 +5,13 @@ local CallbackHandler = _G.LibStub('CallbackHandler-1.0')
 
 local AddOnName, Engine = ...
 
-local C = AceAddon:NewAddon(AddOnName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0")
+local C = AceAddon:NewAddon(Engine, AddOnName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0")
+
 C.DF = {profile = {}, global = {}}; C.privateVars = {profile = {}} -- Defaults
 
 C.callbacks = C.callbacks or CallbackHandler:New(C)
 C.wowpatch, C.wowbuild, C.wowdate, C.wowtoc = GetBuildInfo()
 C.locale = GetLocale()
-
-Engine[1] = C
-Engine[2] = {} -- This is our 'D' proxy
-_G["Cobalt"] = Engine
 
 -- =====================================================
 -- Module Registration
@@ -31,7 +28,6 @@ C.Quests            = C:NewModule("Quests", "AceEvent-3.0")
 C.SharedMedia       = C:NewModule("SharedMedia")
 C.Vault             = C:NewModule("Vault", "AceEvent-3.0")
 C.Warmode           = C:NewModule("Warmode", "AceEvent-3.0")
-
 
 -- =====================================================
 -- Library Registry
@@ -62,14 +58,5 @@ function C:OnInitialize()
     self.database = AceDB:New("CobaltDB", self.DF, true)
     self.DB = self.database.global
 
-    -- Setup Proxy
-    -- local D = Cobalt[2]
-    -- wipe(D) 
-    -- setmetatable(D, {
-    --     __index = function(_, key) return self.database.global[key] end,
-    --     __newindex = function(_, key, value) self.database.global[key] = value end,
-    -- })
-
-    -- self.D = D
     self:RegisterChatCommand("cobalt", "SlashHandler")
 end

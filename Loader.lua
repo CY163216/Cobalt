@@ -403,7 +403,7 @@ function C:Print(module, ...)
 end
 
 function C:Debug(module, ...)
-    if not (D and C.DB.dev and C.DB.dev.debugMode) then return end
+    if not (C.DB and C.DB.dev and C.DB.dev.debugMode) then return end
 
     local name = (type(module) == "table" and module.GetName) and module:GetName() or tostring(module or "CX")
     local msg = ...

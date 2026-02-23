@@ -1,4 +1,4 @@
-local C, G = unpack(Cobalt)
+local C = select(2, ...)
 local SM = C:GetModule('SharedMedia')
 local LSM = C.Libs.LSM
 
