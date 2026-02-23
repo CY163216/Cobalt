@@ -1,0 +1,22 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+
+    <Script file="Init.lua"/>
+    <Script file="Loader.lua"/>
+
+    <Script file="Modules\AH.lua"/>
+    <Script file="Modules\BindPad.lua"/>
+    <Script file="Modules\Decor.lua"/>
+    <Script file="Modules\Dev.lua"/>
+    <Script file="Modules\ElvProfile.lua"/>
+    <Script file="Modules\Lumber.lua"/>
+    <Script file="Modules\Minimap.lua"/>
+    <Script file="Modules\Panel.lua"/>
+    <Script file="Modules\Quests.lua"/>
+    <Script file="Modules\SharedMedia.lua"/>
+    <Script file="Modules\Vault.lua"/>
+    <Script file="Modules\Warmode.lua"/>
+
+
+</Ui>

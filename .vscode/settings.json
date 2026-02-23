@@ -1,0 +1,14 @@
+{
+    "Lua.diagnostics.globals": [
+        "StaticPopupDialogs",
+        "ReloadUI",
+        "StaticPopup_Show",
+        "NORMAL_FONT_COLOR",
+        "TooltipDataProcessor",
+        "TooltipUtil",
+        "GameFontNormal",
+        "UIParent",
+        "UIFrameFadeIn",
+        "UIFrameFadeOut"
+    ]
+}

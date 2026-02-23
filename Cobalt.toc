@@ -1,0 +1,13 @@
+## Interface: 120001
+## Title: Cobalt
+## Notes: Cobalt Addon
+## Author: CY163216
+## Version: 12.0.1-1
+## Category: User Interface
+## SavedVariables: CobaltDB
+## OptionalDeps: BindPad, ElvUI, AddMedia, Syndicator
+## IconTexture: Interface\Icons\inv_12_profession_thematicfoozles_moteofpurevoid_blue
+
+embeds.xml
+!load_mainline.xml
+
