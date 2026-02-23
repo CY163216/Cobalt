@@ -50,7 +50,7 @@ local NAV_MENU = {
 function Panel:RefreshContent()
     if not self.contentFrame then return end
     self.contentFrame:ReleaseChildren()
-    
+
     local scroll = AceGUI:Create("ScrollFrame")
     scroll:SetLayout("List")
     scroll:SetFullHeight(true)
@@ -91,14 +91,14 @@ function Panel:UpdateNavigation()
         else
             btn.frame:SetHighlightLocked(false)
         end
-        
+
         btn:SetCallback("OnClick", function()
             self.selectedTab = item.name
             -- Module specific logic
             -- if item.name == "Quests" then C:GetModule("QuestTracker"):UpdateQuestStatus() end
             -- if item.name == "Vault" then C:GetModule("vault"):Check() end
             -- if item.name == "Decor" then C:GetModule("Decor"):UpdateCounts() end
-            
+
             self:RefreshContent()
         end)
         self.sidebar:AddChild(btn)
@@ -118,7 +118,7 @@ function Panel:UpdateDecor(container)
     editbox:SetLabel("Paste Item IDs (comma separated):")
     editbox:SetFullWidth(true)
     editbox:SetNumLines(3)
-    
+
     -- Safety check for activeIDs
     if DC.activeIDs and #DC.activeIDs > 0 then
         editbox:SetText(table.concat(DC.activeIDs, ", "))
@@ -165,10 +165,10 @@ function Panel:UpdateDecor(container)
             -- 2. ITEM NAME & TOOLTIP
             local nameLabel = AceGUI:Create("InteractiveLabel")
             local itemName = GetItemInfo(item.id) or item.name or "Unknown Item"
-            
+
             nameLabel:SetText(expColor .. itemName .. FONT_COLOR_CODE_CLOSE)
             nameLabel:SetRelativeWidth(0.50)
-            
+
             nameLabel:SetCallback("OnEnter", function(widget)
                 GameTooltip:SetOwner(widget.frame, "ANCHOR_TOPRIGHT")
                 GameTooltip:SetHyperlink("item:" .. item.id)
@@ -188,10 +188,10 @@ function Panel:UpdateDecor(container)
             local priceLabel = AceGUI:Create("Label")
             -- target * 500 Gold (Converted to Copper: 1g = 10000c)
             local itemCostInCopper = (item.target or 0) * 500 * 10000
-            
+
             priceLabel:SetText(GetCoinTextureString(itemCostInCopper))
             priceLabel:SetRelativeWidth(0.25)
-            
+
             -- Safe alignment check
             if priceLabel.label then 
                 priceLabel.label:SetJustifyH("RIGHT") 
@@ -199,62 +199,6 @@ function Panel:UpdateDecor(container)
             row:AddChild(priceLabel)
         end
     end
-
-    -- -- Loop through categories (Classic, Outland, etc.)
-    -- for catName, items in pairs(DC.inventory) do
-    --     local catHeader = AceGUI:Create("Heading")
-    --     catHeader:SetText(catName)
-    --     catHeader:SetFullWidth(true)
-    --     container:AddChild(catHeader)
-
-    --     for _, item in ipairs(items) do
-    --         local group = AceGUI:Create("SimpleGroup")
-    --         group:SetLayout("Flow")
-    --         group:SetFullWidth(true)
-    --         container:AddChild(group)
-
-    --         local mapping = L and L.LumberMapping
-    --         local dbEntry = mapping and mapping[item.id]
-            
-    --         local expColor = "|cffffffff"
-    --         if dbEntry then
-    --             local typeData = dbEntry[1]
-    --             if typeData and typeData.exp and typeData.exp.color then
-    --                 expColor = typeData.exp.color
-    --             end
-    --         end
-
-    --         -- ITEM NAME LABEL
-    --         local nameLabel = AceGUI:Create("InteractiveLabel")
-    --         local rawName = GetItemInfo(item.id) or item.name
-    --         nameLabel:SetText(expColor .. rawName .. "|r")
-    --         nameLabel:SetRelativeWidth(0.50)
-            
-    --         nameLabel:SetCallback("OnEnter", function()
-    --             GameTooltip:SetOwner(nameLabel.frame, "ANCHOR_TOPRIGHT")
-    --             GameTooltip:SetHyperlink("item:"..item.id)
-    --             GameTooltip:Show()
-    --         end)
-    --         nameLabel:SetCallback("OnLeave", function() GameTooltip:Hide() end)
-    --         group:AddChild(nameLabel)
-
-    --         -- STOCK COUNT LABEL
-    --         local stockLabel = AceGUI:Create("Label")
-    --         local countColor = (item.total >= 1) and "|cff00ff00" or "|cffffffff"
-    --         stockLabel:SetText(string.format("%s%d units|r", countColor, item.total))
-    --         stockLabel:SetRelativeWidth(0.20)
-    --         group:AddChild(stockLabel)
-
-    --         -- PRICE CALCULATION LABEL
-    --         local priceLabel = AceGUI:Create("Label")
-    --         -- Using item.target which was populated in Decor:UpdateCounts()
-    --         local itemCostInCopper = (item.target or 0) * 500 * 10000
-    --         priceLabel:SetText(GetCoinTextureString(itemCostInCopper))
-    --         priceLabel:SetRelativeWidth(0.25)
-    --         if priceLabel.label then priceLabel.label:SetJustifyH("RIGHT") end
-    --         group:AddChild(priceLabel)
-    --     end
-    -- end
 end
 
 ----------------------------------------------------
@@ -275,7 +219,7 @@ function Panel:UpdateBindPad(container)
     local currentVer = D.bindPadVersions and D.bindPadVersions[C.mynameRealm] or 0
     local isMain = (C.mynameRealm == config.main)
     local statusText = isMain and "|cff00ff00Main Character|r" or "|cff00aaffAlt Character|r"
-    
+
     local info = AceGUI:Create("Label")
     info:SetText(string.format("\nRole: %s\nMain: |cff00ff00%s|r\nVersion: |cff00ff00v%d / v%d|r\n\n", 
         statusText, config.main, currentVer, config.version))
@@ -307,7 +251,7 @@ function Panel:UpdateVault(container)
         ["World"] = {2, 4, 8}
     }
     local charKey = C.mynameRealm
-    
+
     if not D.vault then return end
 
     -- 1. Gather Alts
@@ -370,7 +314,7 @@ function Panel:UpdateVault(container)
         for idx, catName in ipairs(visibleCats) do
             local catThresholds = thresholds[catName]
             local charCatData = (not isDummy and charData) and charData[catName] or {}
-            
+
             local currentProg = 0
             for _, d in ipairs(charCatData) do
                 if type(d) == "table" and d.progress and d.progress > currentProg then 
@@ -394,7 +338,7 @@ function Panel:UpdateVault(container)
                 local prevThreshold = catThresholds[slotIdx-1] or 0
                 local slotLabel = AceGUI:Create("Label")
                 slotLabel:SetRelativeWidth(0.33)
-                
+
                 local displayText = ""
                 if slotData and slotData.progress and slotData.progress >= threshold then
                     displayText = string.format("|cff00aaffilvl: %s|r", slotData.level or "??")
@@ -405,7 +349,7 @@ function Panel:UpdateVault(container)
                 else
                     displayText = "|cff808080Locked|r"
                 end
-                
+
                 slotLabel:SetText("  " .. displayText)
                 rowGroup:AddChild(slotLabel)
             end
@@ -417,7 +361,6 @@ function Panel:UpdateVault(container)
                 container:AddChild(s)
             end
         end
-        -- Extra spacing for the main character removed as requested.
     end
 end
 
@@ -426,7 +369,7 @@ end
 ----------------------------------------------------
 function Panel:UpdateElvProfile(container)
     local currentName = C.mynameRealm
-    
+
     -- Helper to create a two-column row with right-aligned status
     local function AddCharacterRow(parent, name, status, isCurrent)
         local row = AceGUI:Create("SimpleGroup")
@@ -483,7 +426,7 @@ end
 function Panel:UpdateDev(container)
     local dev = D.dev
     if not dev then return end
-    
+
     -- Ensure the filter table exists in your SavedVariables
     dev.moduleFilter = dev.moduleFilter or {}
 
@@ -529,10 +472,10 @@ function Panel:UpdateDev(container)
         local cb = AceGUI:Create("CheckBox")
         cb:SetLabel(name)
         cb:SetRelativeWidth(0.5) -- Two columns
-        
+
         -- Set current saved state (default to false if never set)
         cb:SetValue(dev.moduleFilter[name] == true)
-        
+
         cb:SetCallback("OnValueChanged", function(_, _, value)
             dev.moduleFilter[name] = value
             C:Print(self, "Debug for |cff00aaff" .. name .. "|r set to: " .. (value and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
@@ -567,18 +510,17 @@ function Panel:UpdateDev(container)
         btn:SetCallback("OnClick", function()
             -- Explicitly look for the function name in the Dev module
             local action = Dev[cmd.func]
-            
+
             if type(action) == "function" then
                 -- Execute as Dev:FunctionName(Dev)
                 action(Dev) 
-                
+
                 -- Use your framework's Debug (C) to confirm
                 C:Debug(Dev, "Executed:", cmd.name)
             else
                 print("|cffff0000Error:|r Dev:" .. tostring(cmd.func) .. "() not found!")
             end
         end)
-        
         btnGroup:AddChild(btn)
     end
 
@@ -595,7 +537,7 @@ end
 function Panel:UpdateQuests(container)
     local allQuestData = D.quests or {}
     local currentCharacter = C.mynameRealm
-    
+
     -- Helper to create a two-column row matching the ElvUI style
     local function AddQuestRow(parent, name, isDone)
         local row = AceGUI:Create("SimpleGroup")
@@ -645,7 +587,7 @@ function Panel:UpdateQuests(container)
     for _, name in ipairs(otherChars) do
         local shortName = name:match("^([^-]+)") or name
         local charData = allQuestData[name] or {}
-        
+
         -- Character Identifier Label (No formatting)
         local charLabel = AceGUI:Create("Label")
         -- charLabel:SetText("|cff00AAFF" .. shortName .. "|r")
@@ -672,7 +614,7 @@ function Panel:UpdateGeneral(container)
     local function DumpTable(t, indent)
         indent = indent or 0
         local spacing = string.rep("  ", indent)
-        
+
         for k, v in pairs(t) do
             if type(v) == "table" then
                 print(spacing .. "|cff00ff00[" .. tostring(k) .. "]|r = {")
@@ -711,7 +653,7 @@ function Panel:Create()
     frame:SetLayout("Flow")
     frame:SetWidth(UI_CONFIG.WIDTH)
     frame:SetHeight(UI_CONFIG.HEIGHT)
-    
+
     -- 1. Enable closing with the ESC key
     -- local frameName = "CobaltMainFrame"
     -- _G[frameName] = frame.frame
@@ -771,7 +713,7 @@ function Panel:Toggle()
         self.Frame:Show()
         return 
     end
-    
+
     -- Otherwise, just flip visibility
     if self.Frame:IsShown() then
         self.Frame:Hide()
@@ -783,7 +725,7 @@ end
 function Panel:OnInitialize()
     C:Debug(self, C.MODULE_ENABLED)
     self:Create()
-    
+
     -- Ensure it's hidden on login
     if self.Frame then 
         self.Frame:Hide() 

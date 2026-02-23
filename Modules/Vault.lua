@@ -2,8 +2,6 @@ local C, D = unpack(Cobalt)
 local WV = C:GetModule('Vault')
 local AceGUI = C.Libs.AceGUI
 
-local _G = _G
-
 -- Updated Constants for TWW Vault Categories
 local CATEGORIES = {
     [Enum.WeeklyRewardChestThresholdType.Activities] = "Dungeon", -- 1
@@ -16,7 +14,7 @@ function WV:Check()
     if not charKey then return end
 
     D.vault = D.vault or {}
-    
+
     local charData = {}
     local totalProgress = 0
 
@@ -78,7 +76,7 @@ function WV:ShowVaultAlert()
     btn:SetFullWidth(true)
     btn:SetCallback("OnClick", function() frame:Hide() end)
     frame:AddChild(btn)
-    
+
     -- Close automatically if the user enters combat
     frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
 end

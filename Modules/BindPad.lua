@@ -1,8 +1,6 @@
 local C, D = unpack(Cobalt)
 local M = C:GetModule("BindPad")
 
-local _G = _G
-
 -- HELPER: Convert "Name - Realm" to BindPad's "Realm_Name"
 local function GetBindPadKey(charKey)
     local name, realm = charKey:match("^(.-)%s*-%s*(.+)$")
@@ -37,18 +35,18 @@ function M:SyncBinds()
 
         -- SAFETY: Check BindPadVars using the "PROFILE_" prefix
         local dbKey = "PROFILE_" .. sourceKey
-        if not _G.BindPadVars or not _G.BindPadVars[dbKey] then
+        if not BindPadVars or not BindPadVars[dbKey] then
             C:Print(self, "|cffff0000Error:|r BindPad profile '|cff00ff00" .. dbKey .. "|r' not found in database.")
             return
         end
 
         -- Execute Sync
-        if _G.BindPadCore and _G.BindPadCore.DoCopyFrom then
+        if BindPadCore and BindPadCore.DoCopyFrom then
             C:Print(self, string.format("Updating BindPad (v%d -> v%d) from |cff00ff00%s|r.", myCurrentVer, config.version, config.main))
-            
+
             -- API call uses the key WITHOUT the prefix
-            _G.BindPadCore.DoCopyFrom(sourceKey)
-            
+            BindPadCore.DoCopyFrom(sourceKey)
+
             D.bindPadVersions[C.mynameRealm] = config.version
         else
             C:Print(self, "|cffff0000Error:|r BindPad API not found.")
@@ -60,7 +58,7 @@ end
 
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
-    
+
     C_Timer.After(0.1, function()
         self:SyncBinds()
     end)

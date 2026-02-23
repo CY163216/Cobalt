@@ -1,8 +1,5 @@
 local C, D = unpack(Cobalt)
 local Decor = C:GetModule('Decor')
-local L = C:GetModule("Lumber")
-
-local _G = _G
 
 local GetItemInfo = C_Item.GetItemInfo
 local SyndicatorAPI = Syndicator and Syndicator.API
@@ -11,14 +8,14 @@ local SyndicatorAPI = Syndicator and Syndicator.API
 function Decor:GetDecorData(targetID)
     local DECOR_MAP = C.DECOR_LUMBER_MAP
     local entry = DECOR_MAP and DECOR_MAP[targetID]
-    
+
     if entry then
         -- entry.type is the LumberType table (e.g., IRONWOOD)
         local lumberType = entry.type
         local name = lumberType and lumberType.name or "Unknown Lumber"
         return entry, name
     end
-    
+
     return nil
 end
 
@@ -26,7 +23,7 @@ end
 function Decor:UpdateIDList(inputString)
     -- Clear current session IDs
     self.activeIDs = {}
-    
+
     if not inputString or inputString == "" then 
         self.inventory = {} -- Reset display inventory if input is wiped
         return 
@@ -39,14 +36,14 @@ function Decor:UpdateIDList(inputString)
             table.insert(self.activeIDs, id) 
         end
     end
-    
+
     -- Refresh the inventory counts based on the new ID list
     self:UpdateCounts()
 end
 
 function Decor:UpdateCounts()
     self.inventory = {} -- Use self instead of Decor for internal reference
-    
+
     local DECOR_MAP = C.DECOR_LUMBER_MAP
 
     -- Safety check: Ensure our constant map exists
@@ -57,11 +54,11 @@ function Decor:UpdateCounts()
 
     for _, itemID in ipairs(self.activeIDs or {}) do
         local entry = DECOR_MAP[itemID]
-        
+
         if entry then
             local lumberType = entry.type
             local yieldCount = entry.count
-            
+
             -- 1. SUM INVENTORY (Syndicator Optimization)
             local totalSum = 0
             if SyndicatorAPI then
@@ -85,10 +82,10 @@ function Decor:UpdateCounts()
 
             -- 2. DETERMINE CATEGORY (Grouping by Expansion)
             local expLabel = (lumberType and lumberType.exp and lumberType.exp.label) or "Tracked Items"
-            
+
             -- 3. BUILD DATA OBJECT
             self.inventory[expLabel] = self.inventory[expLabel] or {}
-            
+
             table.insert(self.inventory[expLabel], {
                 id     = itemID,
                 name   = GetItemInfo(itemID) or (lumberType and lumberType.name) or ("ID: " .. itemID),

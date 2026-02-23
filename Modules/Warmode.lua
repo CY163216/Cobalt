@@ -3,8 +3,6 @@ local C, D = unpack(Cobalt)
 local WM = C:GetModule('Warmode')
 local LSM = C.Libs.LSM
 
-local _G = _G
-
 -- Configuration
 local FADE_TIME = 0.4
 local TEXT_COLOR = {1, 0.2, 0.2}
@@ -28,7 +26,7 @@ function WM:CreateFrame()
     t:SetJustifyH("CENTER")
     t:SetTextColor(unpack(TEXT_COLOR))
     t:SetText("WAR MODE ACTIVE (RESTING)")
-    
+
     f.text = t
     self.frame = f
 end
@@ -61,9 +59,9 @@ end
 
 function WM:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
-    
+
     self:CreateFrame()
-    
+
     self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnEvent")
     self:RegisterEvent("PLAYER_UPDATE_RESTING", "OnEvent")
     self:RegisterEvent("WAR_MODE_STATUS_UPDATE", "OnEvent")

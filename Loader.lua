@@ -1,8 +1,6 @@
 local Cobalt = select(2, ...)
 local C, D = unpack(Cobalt)
 
-local _G = _G
-
 -- =====================================================
 -- Constants
 -- =====================================================
@@ -381,7 +379,6 @@ C.ROSTER_DATA = {
     ["Melios - Bloodhoof"]          = { index = 70, priority = 999, class = "PRIEST" },
 }
 
-
 -- =====================================================
 -- Loader Functions (Filtered Debugging with Fallback)
 -- =====================================================
@@ -415,14 +412,14 @@ end
 function C:IsHolidayActive(holidayName)
     local day = tonumber(date("%d")) or 0
     local numEvents = C_Calendar.GetNumDayEvents(0, day)
-    
+
     for i = 1, numEvents do
         local info = C_Calendar.GetHolidayInfo(0, day, i)
         if info and info.name == holidayName then
             return true
         end
     end
-    
+
     return false
 end
 

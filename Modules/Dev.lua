@@ -20,7 +20,7 @@ function Dev:CleanupInactiveHolidays()
     for charKey, questList in pairs(D.quests) do
         -- 3. Check every quest stored for that character
         for questName, _ in pairs(questList) do
-            
+
             -- Find the quest definition in your master table
             for _, qDef in ipairs(QT.TRACKED_QUESTS) do
                 if qDef.name == questName and qDef.isHoliday then
@@ -31,7 +31,6 @@ function Dev:CleanupInactiveHolidays()
                     end
                 end
             end
-            
         end
     end
     C:Debug(self, "Holiday clearing finished")
@@ -99,7 +98,7 @@ function Dev:OnEnable()
     C:RegisterChatCommand("cdev", function(input) 
         Dev:SlashHandler(input) 
     end)
-    
+
     C:Debug(self, "Dev Module: /cdev registered via Manual Handler")
 end
 

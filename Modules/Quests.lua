@@ -1,12 +1,10 @@
 local C, D = unpack(Cobalt)
 local M = C:GetModule("Quests")
 
-local _G = _G
-
 M.TRACKED_QUESTS = {
     -- Case 1: Universal ID (Same for everyone)
     -- { name = "Special Assignment", id = 82689 },
-    
+
     -- Case 2: Faction-Specific, NOT a holiday (e.g. Intro quests)
     -- { name = "Faction Intro", horde = 12345, alliance = 67890 }, 
 

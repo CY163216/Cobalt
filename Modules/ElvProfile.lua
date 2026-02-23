@@ -1,18 +1,16 @@
 local C, D = unpack(Cobalt)
 local M = C:GetModule("ElvProfile")
 
-local _G = _G
-
 -- Constants
 local TARGET_PROFILE = "midnight"
 
 local IgnoreList = {
-    ["Melios"] = "banker", 
-    ["Kujaku"] = "banker", 
+    ["Melios"] = "banker",
+    ["Kujaku"] = "banker",
     ["Jisumi"] = "banker",
-    ["Shipusuheddo"] = "banker", 
-    ["Kozaburo"] = "banker", 
-    ["Kurogan"] = "banker", 
+    ["Shipusuheddo"] = "banker",
+    ["Kozaburo"] = "banker",
+    ["Kurogan"] = "banker",
     ["Cygnax"] = "banker"
 }
 
@@ -39,7 +37,7 @@ end
 function M:CheckAndSetProfiles()
     local ElvDB = ElvDB
     local ElvPrivateDB = ElvPrivateDB
-    
+
     if not ElvDB or not ElvPrivateDB then
         C:Debug(self, "|cffff0000Error:|r ElvUI SavedVariables not found.")
         return
@@ -91,13 +89,13 @@ end
 
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
-    
+
     if not C_AddOns.IsAddOnLoaded("ElvUI") then
         C:Debug(self, "ElvUI is not enabled or loaded. Skipping profile check.")
         return
     end    
     local currentStatus = self:GetProfileStatus()
-    
+
     if currentStatus then
         C:Debug(self, "Skipping: Status is already [|cff00ff00" .. tostring(currentStatus) .. "|r]")
         return

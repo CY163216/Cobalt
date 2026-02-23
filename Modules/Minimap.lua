@@ -9,7 +9,7 @@ function M:OnInitialize()
         type = "launcher",
         text = "Cobalt",
         icon = "Interface\\Icons\\inv_12_profession_thematicfoozles_moteofpurevoid_blue",
-        
+
         OnClick = function(_, button)
             if button == "LeftButton" then
                 -- Call the Toggle function from Panel.lua
@@ -50,12 +50,12 @@ end
 
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
-    
+
     if not D.minimap then D.minimap = {} end
     if not LDBI:IsRegistered("Cobalt") then
         LDBI:Register("Cobalt", self.obj, D.minimap)
     end
-    
+
     LDBI:Refresh("Cobalt", D.minimap)
 
     C:RegisterChatCommand("cobalt", function(input) 

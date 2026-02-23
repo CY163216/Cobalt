@@ -8,7 +8,7 @@ end
 function M:MarkAsDone(reason)
     D.AH = D.AH or {}
     D.AH[C.mynameRealm] = true
-    
+
     self:UnregisterAllEvents()
 
     if reason == "WIPED" then
@@ -42,13 +42,13 @@ function M:OnSearchFailed()
 end
 
 function M:OnEnable()
-    C:Debug(self, C.MODULE_ENABLED)  
+    C:Debug(self, C.MODULE_ENABLED)
 
     if self:IsCleared() then
         C:Debug(self, "AH status: |cff00ff00Cleared|r")
         C:Debug(self, C.MODULE_DISABLED)
-        self:Disable() 
-        return 
+        self:Disable()
+        return
     end
 
     C:Print(self, "Please |cff00ff00Open the Auction House|r to auto-wipe favorites.")
