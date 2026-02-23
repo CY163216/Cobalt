@@ -3,9 +3,6 @@ local Panel = C:GetModule("Panel")
 local BP = C:GetModule("BindPad")
 local DC = C:GetModule("Decor")
 local EP = C:GetModule("ElvProfile")
-local L = C:GetModule("Lumber")
-local QT = C:GetModule("Quests")
-local WV = C:GetModule("Vault")
 local Dev = C:GetModule("Dev")
 local AceGUI = C.Libs.AceGUI
 
@@ -567,7 +564,7 @@ function Panel:UpdateQuests(container)
     container:AddChild(topHeader)
 
     local currentData = allQuestData[currentCharacter] or {}
-    for _, q in ipairs(QT.TRACKED_QUESTS) do
+    for _, q in ipairs(C.TRACKED_QUESTS) do
         AddQuestRow(container, q.name, currentData[q.name])
     end
 
@@ -595,7 +592,7 @@ function Panel:UpdateQuests(container)
         charLabel:SetFullWidth(true)
         container:AddChild(charLabel)
 
-        for _, q in ipairs(QT.TRACKED_QUESTS) do
+        for _, q in ipairs(C.TRACKED_QUESTS) do
             AddQuestRow(container, "  " .. q.name, charData[q.name])
         end
     end

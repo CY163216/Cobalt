@@ -1,6 +1,5 @@
 local C, D = unpack(Cobalt)
 local Dev = C:GetModule("Dev")
-local QT = C:GetModule("Quests")
 
 ----------------------------------------------------
 --- DEV FUNCTIONS
@@ -10,7 +9,7 @@ function Dev:CleanupInactiveHolidays()
 
     -- 1. Create a quick lookup for active holidays to avoid redundant API calls
     local activeHolidays = {}
-    for _, q in ipairs(QT.TRACKED_QUESTS) do
+    for _, q in ipairs(C.TRACKED_QUESTS) do
         if q.isHoliday then
             activeHolidays[q.name] = C:IsHolidayActive(q.name)
         end
@@ -22,7 +21,7 @@ function Dev:CleanupInactiveHolidays()
         for questName, _ in pairs(questList) do
 
             -- Find the quest definition in your master table
-            for _, qDef in ipairs(QT.TRACKED_QUESTS) do
+            for _, qDef in ipairs(C.TRACKED_QUESTS) do
                 if qDef.name == questName and qDef.isHoliday then
                     -- 4. If it's a holiday and NOT active, wipe it from the DB
                     if not activeHolidays[questName] then

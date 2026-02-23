@@ -1,4 +1,4 @@
-local C, D = unpack(Cobalt)
+local C = unpack(Cobalt)
 local Decor = C:GetModule('Decor')
 
 local GetItemInfo = C_Item.GetItemInfo

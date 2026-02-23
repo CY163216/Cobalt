@@ -379,6 +379,18 @@ C.ROSTER_DATA = {
     ["Melios - Bloodhoof"]          = { index = 70, priority = 999, class = "PRIEST" },
 }
 
+C.TRACKED_QUESTS = {
+    -- Case 1: Universal ID (Same for everyone)
+    -- { name = "Special Assignment", id = 82689 },
+
+    -- Case 2: Faction-Specific, NOT a holiday (e.g. Intro quests)
+    -- { name = "Faction Intro", horde = 12345, alliance = 67890 }, 
+
+    -- Case 3: Faction-Specific AND a holiday
+    { name = "Love is in the Air", horde = 78985, alliance = 78379, isHoliday = true },
+    -- { name = "Lunar Festival",    horde = 12345, alliance = 67890, isHoliday = true },
+}
+
 -- =====================================================
 -- Loader Functions (Filtered Debugging with Fallback)
 -- =====================================================
