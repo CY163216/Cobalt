@@ -212,7 +212,7 @@ function Panel:UpdateBindPad(container)
     local info = AceGUI:Create("Label")
     info:SetText(string.format("\nRole: %s\nMain: |cff00ff00%s|r\nVersion: |cff00ff00v%d / v%d|r\n\n", 
         statusText, config.main, currentVer, config.version))
-    info:SetFontObject(GameFontNormal) 
+    info:SetFontObject(GameFontNormal)
     info:SetFullWidth(true)
     container:AddChild(info)
 
@@ -310,7 +310,7 @@ function Panel:UpdateVault(container)
             end
 
             local catLabel = AceGUI:Create("Label")
-            catLabel:SetText(_G.NORMAL_FONT_COLOR:WrapTextInColorCode(catName))
+            catLabel:SetText(NORMAL_FONT_COLOR:WrapTextInColorCode(catName))
             catLabel:SetFontObject(GameFontNormal)
             catLabel:SetFullWidth(true)
             container:AddChild(catLabel)
@@ -364,7 +364,7 @@ function Panel:UpdateElvProfile(container)
 
         -- Character Name Label (Left)
         local nameLabel = AceGUI:Create("Label")
-        nameLabel:SetText(isCurrent and _G.NORMAL_FONT_COLOR:WrapTextInColorCode(name) or name)
+        nameLabel:SetText(isCurrent and NORMAL_FONT_COLOR:WrapTextInColorCode(name) or name)
         nameLabel:SetRelativeWidth(0.6) -- Takes 60% of the width
         nameLabel:SetFontObject(GameFontNormal)
         row:AddChild(nameLabel)
@@ -553,33 +553,46 @@ function Panel:UpdateQuests(container)
     for _, q in ipairs(C.TRACKED_QUESTS) do
         AddQuestRow(container, q.name, currentData[q.name], q.isHoliday)
     end
-
-    -- 2. Other Characters Section
-    local otherHeader = AceGUI:Create("Heading")
-    otherHeader:SetText("Other Characters")
-    otherHeader:SetFullWidth(true)
-    container:AddChild(otherHeader)
+    if not next(currentData) then
+        local emptyLabel = AceGUI:Create("Label")
+        emptyLabel:SetText("  No quest data.")
+        emptyLabel:SetFullWidth(true)
+        emptyLabel:SetFontObject(GameFontNormal)
+        container:AddChild(emptyLabel)
+    end
 
     -- Sort other characters alphabetically
     local otherChars = {}
-    for name in pairs(allQuestData) do
-        if name ~= currentCharacter then table.insert(otherChars, name) end
+    for name, quests in pairs(allQuestData) do
+        if name ~= currentCharacter and next(quests) then table.insert(otherChars, name) end
     end
     table.sort(otherChars)
 
-    for _, name in ipairs(otherChars) do
-        local shortName = name:match("^([^-]+)") or name
-        local charData = allQuestData[name] or {}
+    if otherChars and next(otherChars) then
+        -- 2. Other Characters Section
+        local otherHeader = AceGUI:Create("Heading")
+        otherHeader:SetText("Other Characters")
+        otherHeader:SetFullWidth(true)
+        container:AddChild(otherHeader)
 
-        -- Character Identifier Label (No formatting)
-        local charLabel = AceGUI:Create("Label")
-        -- charLabel:SetText("|cff00AAFF" .. shortName .. "|r")
-        charLabel:SetText(_G.NORMAL_FONT_COLOR:WrapTextInColorCode(shortName))
-        charLabel:SetFullWidth(true)
-        container:AddChild(charLabel)
 
-        for _, q in ipairs(C.TRACKED_QUESTS) do
-            AddQuestRow(container, "  " .. q.name, charData[q.name], q.isHoliday)
+
+        for _, name in ipairs(otherChars) do
+            local shortName = name:match("^([^-]+)") or name
+
+            local charData = allQuestData[name] or {}
+            if charData and next(charData) then
+                -- Character Identifier Label (No formatting)
+                local charLabel = AceGUI:Create("Label")
+                -- charLabel:SetText("|cff00AAFF" .. shortName .. "|r")
+                charLabel:SetText(NORMAL_FONT_COLOR:WrapTextInColorCode(shortName))
+                charLabel:SetFullWidth(true)
+                container:AddChild(charLabel)
+
+                for _, q in ipairs(C.TRACKED_QUESTS) do
+                    AddQuestRow(container, "  " .. q.name, charData[q.name], q.isHoliday)
+                end
+            end
         end
     end
 end

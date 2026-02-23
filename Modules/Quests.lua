@@ -28,8 +28,40 @@ function M:UpdateQuestStatus()
         end
     end
 
+
     C:Debug(self, "Quest status synced for", charKey)
 end
+
+function M:CleanupInactiveHolidays()
+    local questDB = C.DB and C.DB.quests
+    if not questDB then return end
+
+    local toRemove = {}
+    local hasInactive = false
+
+    -- 1. Identify inactive holidays once
+    for _, q in ipairs(C.TRACKED_QUESTS) do
+        if q.isHoliday and not C:IsHolidayActive(q.name) then
+            toRemove[q.id or q.name] = true
+            hasInactive = true
+        end
+    end
+
+    -- 2. Exit early if everything is active
+    if not hasInactive then return end
+
+    -- 3. Cleanup: Remove specific holiday keys, but leave the character tables intact
+    for _, charQuests in pairs(questDB) do
+        for holidayKey in pairs(toRemove) do
+            charQuests[holidayKey] = nil
+        end
+    end
+end
+
+function M:OnInitialize()
+    M:CleanupInactiveHolidays()
+end
+
 
 function M:OnEnable()
     self:RegisterEvent("QUEST_TURNED_IN", "UpdateQuestStatus")
