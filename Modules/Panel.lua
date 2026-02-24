@@ -792,7 +792,7 @@ function Panel:Create()
     f:SetScript("OnSizeChanged", function(_, w, h) UpdateLayout(w, h) end)
 
     UpdateLayout(UI_CONFIG.WIDTH, UI_CONFIG.HEIGHT)
-    self.selectedTab = "General"
+    self.selectedTab = "Vault"
     self:RefreshContent()
 end
 
