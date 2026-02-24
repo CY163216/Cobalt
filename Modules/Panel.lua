@@ -31,7 +31,7 @@ local UI_CONFIG = {
 }
 
 local NAV_MENU = {
-    { name = "General",    method = "UpdateGeneral" },
+    -- { name = "General",    method = "UpdateGeneral" },
     { name = "Vault",      method = "UpdateVault" },
     { name = "Quests",     method = "UpdateQuests" },
     { name = "Decor",      method = "UpdateDecor" },
