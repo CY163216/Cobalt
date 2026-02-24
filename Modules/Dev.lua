@@ -67,6 +67,38 @@ function Dev:CheckLoveHoliday()
     C:Print(self, holiday, "is active:", result)
 end
 
+function Dev:MigrateBindPadDB()
+    -- 1. Ensure the old data exists and the new table is initialized
+    if C.DB.bindPadVersions and not C.DB.bindpad then
+        C.DB.bindpad = { chars = {} }
+    end
+
+    -- 2. Check if migration is actually needed
+    if C.DB.bindPadVersions then
+        C:Print(self, "|cff00ff00AddonName:|r Migrating BindPad settings to new format...")
+
+        -- 3. Move the data (assuming bindPadVersions was indexed by character/version)
+        for key, value in pairs(C.DB.bindPadVersions) do
+            C.DB.bindpad.chars[key] = value
+        end
+
+        -- 4. Cleanup old data so this doesn't run again
+        C.DB.bindPadVersions = nil
+        C:Print(self, "|cff00ff00AddonName:|r Migration complete.")
+    else
+        C:Print(self, "No C.DB.bindpadVersions")
+    end
+end
+
+function Dev:SetupNewBindPadDB()
+    C.DB.bindpad.mainVersions = {}
+    for _, data in ipairs(C.CLASS_MAINS) do
+        local class = data.class
+        C.DB.bindpad.mainVersions[class] = 1
+    end
+    C:Print(self, "Initial BP versions DB setup done.")
+end
+
 
 -- =====================================================
 -- Dev MANIFEST
@@ -77,6 +109,8 @@ Dev.COMMAND_MANIFEST = {
     { name = "Wipe Test Data", func = "WipeTestData", slash = "wipetest" },
     { name = "testdb", func = "Testdb", slash = "testdb" },
     { name = "lovecheck", func = "CheckLoveHoliday", slash = "love" },
+    { name = "migrate bp", func = "MigrateBindPadDB", slash = "bp" },
+    { name = "new bp", func = "SetupNewBindPadDB", slash = "newbp" },
 
 }
 

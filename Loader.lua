@@ -343,19 +343,35 @@ C.DECOR_LUMBER_MAP = {
 }
 
 C.CLASS_MAINS = {
-    ["MAGE"]         = { main = "Burin - Bloodhoof",    version = 1 },
-    ["DEATHKNIGHT"]  = { main = "Bari - Bloodhoof",     version = 1 },
-    ["SHAMAN"]       = { main = "Borr - Bloodhoof",     version = 1 },
-    ["DEMONHUNTER"]  = { main = "Mihoki - Argent Dawn", version = 1 },
-    ["DRUID"]        = { main = "Mokuroa - Moonglade",  version = 1 },
-    ["WARRIOR"]      = { main = "Jaiya - Bloodhoof",    version = 1 },
-    ["MONK"]         = { main = "Gurabu - Tarren Mill", version = 1 },
-    ["PALADIN"]      = { main = "Burr - Bloodhoof",     version = 1 },
-    ["PRIEST"]       = { main = "Jinrami - Silvermoon", version = 1 },
-    ["EVOKER"]       = { main = "Fiyonse - Silvermoon", version = 1 },
-    ["ROGUE"]        = { main = "Sumoka - Tarren Mill", version = 1 },
-    ["HUNTER"]       = { main = "Brokk - Bloodhoof",    version = 1 },
-    ["WARLOCK"]      = { main = "Kinbo - Tarren Mill",  version = 1 },
+    { class = "MAGE",         main = "Burin - Bloodhoof"    },
+    { class = "DEATHKNIGHT",  main = "Bari - Bloodhoof"     },
+    { class = "SHAMAN",       main = "Borr - Bloodhoof"     },
+    { class = "DEMONHUNTER",  main = "Mihoki - Argent Dawn" },
+    { class = "DRUID",        main = "Mokuroa - Moonglade"  },
+    { class = "WARRIOR",      main = "Jaiya - Bloodhoof"    },
+    { class = "MONK",         main = "Gurabu - Tarren Mill" },
+    { class = "PALADIN",      main = "Burr - Bloodhoof"     },
+    { class = "PRIEST",       main = "Jinrami - Silvermoon" },
+    { class = "EVOKER",       main = "Fiyonse - Silvermoon" },
+    { class = "ROGUE",        main = "Sumoka - Tarren Mill" },
+    { class = "HUNTER",       main = "Brokk - Bloodhoof"    },
+    { class = "WARLOCK",      main = "Kinbo - Tarren Mill"  },
+}
+
+C.CLASS_PRIORITY = {
+    ["MAGE"]         = C.CLASS_MAINS[1],
+    ["DEATHKNIGHT"]  = C.CLASS_MAINS[2],
+    ["SHAMAN"]       = C.CLASS_MAINS[3],
+    ["DEMONHUNTER"]  = C.CLASS_MAINS[4],
+    ["DRUID"]        = C.CLASS_MAINS[5],
+    ["WARRIOR"]      = C.CLASS_MAINS[6],
+    ["MONK"]         = C.CLASS_MAINS[7],
+    ["PALADIN"]      = C.CLASS_MAINS[8],
+    ["PRIEST"]       = C.CLASS_MAINS[9],
+    ["EVOKER"]       = C.CLASS_MAINS[10],
+    ["ROGUE"]        = C.CLASS_MAINS[11],
+    ["HUNTER"]       = C.CLASS_MAINS[12],
+    ["WARLOCK"]      = C.CLASS_MAINS[13],
 }
 
 C.ROSTER_DATA = {

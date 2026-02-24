@@ -11,48 +11,62 @@ local function GetBindPadKey(charKey)
 end
 
 function M:SyncBinds()
-    local config = C.CLASS_MAINS[C.myclass]
-    if not config or not C.mynameRealm then 
-        C:Debug(self, "No config for class:", C.myclass)
-        return 
-    end
+    -- Initialize DB structure if missing
+    C.DB.bindpad = C.DB.bindpad or { chars = {}, mainVersions = {}, forceSync = false }
 
-    -- 1. Main Character Check
-    if C.mynameRealm == config.main then
-        C:Debug(self, "Main character detected. Skipping Sync.")
-        C.DB.bindPadVersions = C.DB.bindPadVersions or {}
-        C.DB.bindPadVersions[C.mynameRealm] = config.version
+    local config = C.CLASS_PRIORITY[C.myclass]
+    if not config or not C.mynameRealm then
+        C:Debug(self, "No config for class:", C.myclass)
         return
     end
 
-    -- 2. Version Check
-    C.DB.bindPadVersions = C.DB.bindPadVersions or {}
-    local myCurrentVer = C.DB.bindPadVersions[C.mynameRealm] or 0
+    -- 1. Master Version Check: Get the target version from our new DB table
+    local targetVer = C.DB.bindpad.mainVersions[C.myclass] or 1
+    local myCurrentVer = C.DB.bindpad.chars[C.mynameRealm] or 0
 
-    if config.version > myCurrentVer then
+    -- 2. Main Character Logic: Just update the DB to match the Master Version
+    if C.mynameRealm == config.main then
+        if myCurrentVer ~= targetVer then
+            C.DB.bindpad.chars[C.mynameRealm] = targetVer
+            C:Debug(self, "Main Character updated to v" .. targetVer)
+        end
+        return
+    end
+
+    -- 3. Sync Condition: Is forceSync on, or is the Master Version higher than ours?
+    local needsSync = (targetVer > myCurrentVer)
+    if needsSync then
+        if not C.DB.bindpad.forceSync then
+            C:Debug(self, string.format("Force Sync is OFF. Ignoring version mismatch (v%d -> v%d).", myCurrentVer, targetVer))
+            return
+        end
         local sourceKey = GetBindPadKey(config.main)
-        if not sourceKey then return end
+        if not sourceKey then 
+            C:Debug(self, "Could not resolve BindPadKey for " .. config.main)
+            return 
+        end
 
-        -- SAFETY: Check BindPadVars using the "PROFILE_" prefix
+        -- SAFETY: Check BindPadVars (Addon's internal DB)
         local dbKey = "PROFILE_" .. sourceKey
         if not BindPadVars or not BindPadVars[dbKey] then
-            C:Print(self, "|cffff0000Error:|r BindPad profile '|cff00ff00" .. dbKey .. "|r' not found in database.")
+            C:Print(self, "|cffff0000Error:|r BindPad profile '|cff00ff00" .. dbKey .. "|r' not found.")
             return
         end
 
-        -- Execute Sync
+        -- 4. Execute the Sync via BindPad API
         if BindPadCore and BindPadCore.DoCopyFrom then
-            C:Print(self, string.format("Updating BindPad (v%d -> v%d) from |cff00ff00%s|r.", myCurrentVer, config.version, config.main))
+            C:Print(self, string.format("Updating BindPad (v%d -> v%d) from |cff00ff00%s|r.", myCurrentVer, targetVer, config.main))
 
-            -- API call uses the key WITHOUT the prefix
+            -- Perform the actual copy
             BindPadCore.DoCopyFrom(sourceKey)
 
-            C.DB.bindPadVersions[C.mynameRealm] = config.version
+            -- 5. Update local version to match the Master Version
+            C.DB.bindpad.chars[C.mynameRealm] = targetVer
         else
             C:Print(self, "|cffff0000Error:|r BindPad API not found.")
         end
     else
-        C:Debug(self, "Binds are up to date.")
+        C:Debug(self, "Binds are up to date (v" .. myCurrentVer .. ").")
     end
 end
 

@@ -62,7 +62,6 @@ function M:OnInitialize()
     M:CleanupInactiveHolidays()
 end
 
-
 function M:OnEnable()
     self:RegisterEvent("QUEST_TURNED_IN", "UpdateQuestStatus")
 

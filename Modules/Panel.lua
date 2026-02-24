@@ -12,6 +12,7 @@ local string_format = _G.string.format
 local GetItemInfo = _G.C_Item.GetItemInfo
 local GetCoinTextureString = _G.C_CurrencyInfo.GetCoinTextureString
 local GameTooltip = _G.GameTooltip
+local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 
 -- Reference your updated constants (Panel UpdateDecor)
 local DECOR_MAP = C.DECOR_LUMBER_MAP
@@ -20,8 +21,8 @@ local STOCK_COLOR = "|cff00ff00"
 
 -- Configuration & Constants
 local UI_CONFIG = {
-    WIDTH = 650,
-    HEIGHT = 550,
+    WIDTH = 750,
+    HEIGHT = 700,
     MIN_WIDTH = 600,
     MIN_HEIGHT = 350,
     SIDEBAR_WIDTH = 196, -- Increased for wider buttons
@@ -100,65 +101,67 @@ end
 
 --- DECOR TAB
 function Panel:UpdateDecor(container)
-    local header = AceGUI:Create("Heading")
-    header:SetText("Decor & Price Tracker")
-    header:SetFullWidth(true)
-    container:AddChild(header)
+    -- --- SECTION 1: CONFIGURATION (As before) ---
+    local configGroup = AceGUI:Create("InlineGroup")
+    configGroup:SetTitle("Tracker Configuration")
+    configGroup:SetFullWidth(true)
+    configGroup:SetLayout("Flow")
+    container:AddChild(configGroup)
 
     local editbox = AceGUI:Create("MultiLineEditBox")
     editbox:SetLabel("Paste Item IDs (comma separated):")
     editbox:SetFullWidth(true)
-    editbox:SetNumLines(3)
-
-    -- Safety check for activeIDs
+    editbox:SetNumLines(2)
     if DC.activeIDs and #DC.activeIDs > 0 then
         editbox:SetText(table.concat(DC.activeIDs, ", "))
     end
-
     editbox:SetCallback("OnEnterPressed", function(_, _, value)
         DC:UpdateIDList(value)
-        self:RefreshContent() -- Refresh UI after updating IDs
+        self:RefreshContent()
     end)
-    container:AddChild(editbox)
+    configGroup:AddChild(editbox)
 
-    -- INVENTORY CHECK
+    -- --- SECTION 2: CONSOLIDATED ITEM LIST ---
     if not DC.inventory or next(DC.inventory) == nil then
         local empty = AceGUI:Create("Label")
-        empty:SetText("\nNo active IDs tracked or Item IDs not found in Database.")
+        empty:SetText("\n|cff808080No active items tracked.|r")
         empty:SetFullWidth(true)
         container:AddChild(empty)
         return
     end
 
-    -- Main Loop
+    local mainGroup = AceGUI:Create("ScrollFrame")
+    mainGroup:SetFullWidth(true)
+    mainGroup:SetLayout("Flow")
+    container:AddChild(mainGroup)
+
     for categoryName, items in pairs(DC.inventory) do
-        -- Category Heading
-        local catHeader = AceGUI:Create("Heading")
-        catHeader:SetText(categoryName)
-        catHeader:SetFullWidth(true)
-        container:AddChild(catHeader)
+        -- Category Header (Inside the main group)
+        local header = AceGUI:Create("Heading")
+        header:SetText(categoryName)
+        header:SetFullWidth(true)
+        mainGroup:AddChild(header)
 
         for _, item in ipairs(items) do
-            -- Use a SimpleGroup to wrap each row
             local row = AceGUI:Create("SimpleGroup")
             row:SetLayout("Flow")
             row:SetFullWidth(true)
-            container:AddChild(row)
+            mainGroup:AddChild(row)
 
-            -- 1. DATA LOOKUP (Optimized for the new Mapping)
-            local itemData = DECOR_MAP[item.id]
-            local expColor = DEFAULT_COLOR
-            
-            if itemData and itemData.type and itemData.type.exp then
-                expColor = itemData.type.exp.color or DEFAULT_COLOR
-            end
-
-            -- 2. ITEM NAME & TOOLTIP
+            -- 1. ASYNC DATA FETCH (Fixes the naming issue)
             local nameLabel = AceGUI:Create("InteractiveLabel")
-            local itemName = GetItemInfo(item.id) or item.name or "Unknown Item"
-
-            nameLabel:SetText(expColor .. itemName .. FONT_COLOR_CODE_CLOSE)
-            nameLabel:SetRelativeWidth(0.50)
+            nameLabel:SetText("|cff808080Loading...|r") -- Placeholder
+            nameLabel:SetWidth(180)
+            
+            -- Use Mixin to force server query for missing item names
+            local itemObj = Item:CreateFromItemID(item.id)
+            itemObj:ContinueOnItemLoad(function()
+                local realName = itemObj:GetItemName()
+                local itemData = DECOR_MAP[item.id]
+                local expColor = (itemData and itemData.type and itemData.type.exp) and itemData.type.exp.color or "|cffffffff"
+                
+                nameLabel:SetText(expColor .. realName .. "|r")
+            end)
 
             nameLabel:SetCallback("OnEnter", function(widget)
                 GameTooltip:SetOwner(widget.frame, "ANCHOR_TOPRIGHT")
@@ -168,25 +171,18 @@ function Panel:UpdateDecor(container)
             nameLabel:SetCallback("OnLeave", function() GameTooltip:Hide() end)
             row:AddChild(nameLabel)
 
-            -- 3. STOCK COUNT
+            -- 2. STOCK & PRICE
             local stockLabel = AceGUI:Create("Label")
-            local countColor = (item.total >= 1) and STOCK_COLOR or DEFAULT_COLOR
-            stockLabel:SetText(string_format("%s%d units" .. FONT_COLOR_CODE_CLOSE, countColor, item.total))
-            stockLabel:SetRelativeWidth(0.20)
+            local countColor = (item.total >= 1) and "|cff00ff00" or "|cff808080"
+            stockLabel:SetText(string.format("%s%d units|r", countColor, item.total))
+            stockLabel:SetWidth(80)
             row:AddChild(stockLabel)
 
-            -- 4. PRICE CALCULATION (Cleaned up logic)
             local priceLabel = AceGUI:Create("Label")
-            -- target * 500 Gold (Converted to Copper: 1g = 10000c)
             local itemCostInCopper = (item.target or 0) * 500 * 10000
-
             priceLabel:SetText(GetCoinTextureString(itemCostInCopper))
-            priceLabel:SetRelativeWidth(0.25)
-
-            -- Safe alignment check
-            if priceLabel.label then 
-                priceLabel.label:SetJustifyH("RIGHT") 
-            end
+            priceLabel:SetWidth(120)
+            priceLabel:SetJustifyH("RIGHT")
             row:AddChild(priceLabel)
         end
     end
@@ -194,159 +190,254 @@ end
 
 --- BINDPAD SYNC TAB
 function Panel:UpdateBindPad(container)
-    local config = C.CLASS_MAINS[C.myclass]
+    -- Instant lookup using your new static map
+    local config = C.CLASS_PRIORITY[C.myclass]
+
+    -- --- SECTION 1: HEADER & STATUS ---
     local header = AceGUI:Create("Heading")
     header:SetText("BindPad Synchronization")
     header:SetFullWidth(true)
     container:AddChild(header)
 
-    if not config then
-        container:AddChild(AceGUI:Create("Label")):SetText("\nNo config for " .. C.myclass)
+    if not config or not C.mynameRealm then
+        local errorLabel = AceGUI:Create("Label")
+        errorLabel:SetText("\n|cffff0000Error:|r No config found for " .. (C.myclass or "Unknown"))
+        errorLabel:SetFullWidth(true)
+        container:AddChild(errorLabel)
         return
     end
 
-    local currentVer = C.DB.bindPadVersions and C.DB.bindPadVersions[C.mynameRealm] or 0
+    -- 1. Status Card (InlineGroup)
+    local statusGroup = AceGUI:Create("InlineGroup")
+    statusGroup:SetTitle("Character Status")
+    statusGroup:SetFullWidth(true)
+    statusGroup:SetLayout("Flow")
+    container:AddChild(statusGroup)
+
+    -- 2. Character Details
+    local currentVer = (C.DB.bindpad.chars and C.DB.bindpad.chars[C.mynameRealm]) or 0
+    local masterVer  = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[C.myclass]) or 1
     local isMain = (C.mynameRealm == config.main)
-    local statusText = isMain and "|cff00ff00Main Character|r" or "|cff00aaffAlt Character|r"
+    local statusText = isMain and "|cff00ff00Main|r" or "|cff00aaffAlt|r"
+    local verColor = (currentVer < masterVer) and "|cffff0000" or "|cff00ff00"
 
     local info = AceGUI:Create("Label")
-    info:SetText(string.format("\nRole: %s\nMain: |cff00ff00%s|r\nVersion: |cff00ff00v%d / v%d|r\n\n", 
-        statusText, config.main, currentVer, config.version))
+    info:SetText(string.format("Role: %s  |  Main: |cff00ff00%s|r  |  Version: %sv%d / v%d|r", 
+        statusText, config.main, verColor, currentVer, masterVer))
     info:SetFontObject(GameFontNormal)
     info:SetFullWidth(true)
-    container:AddChild(info)
+    statusGroup:AddChild(info)
 
+    -- 3. Action Row (Buttons)
+    local actionRow = AceGUI:Create("SimpleGroup")
+    actionRow:SetLayout("Flow")
+    actionRow:SetFullWidth(true)
+    statusGroup:AddChild(actionRow)
+
+    -- Button: Force Sync (Only for Alts)
     if not isMain then
         local btn = AceGUI:Create("Button")
         btn:SetText("Force Bind Sync")
-        btn:SetWidth(180)
+        btn:SetWidth(140)
         btn:SetCallback("OnClick", function()
-            if C.DB.bindPadVersions then C.DB.bindPadVersions[C.mynameRealm] = 0 end
+            if not C.DB.bindpad.chars then C.DB.bindpad.chars = {} end
+            C.DB.bindpad.chars[C.mynameRealm] = 0
             BP:SyncBinds()
             self:RefreshContent()
+            C:Debug(self, "Manual sync triggered for " .. C.mynameRealm)
         end)
-        container:AddChild(btn)
+        actionRow:AddChild(btn)
+    end
+
+    -- Button: Mark as Synced (Only if mismatch)
+    if currentVer ~= masterVer then
+        local syncVerBtn = AceGUI:Create("Button")
+        syncVerBtn:SetText("Mark as Synced")
+        syncVerBtn:SetWidth(140)
+        syncVerBtn:SetCallback("OnClick", function()
+            if not C.DB.bindpad.chars then C.DB.bindpad.chars = {} end
+            C.DB.bindpad.chars[C.mynameRealm] = masterVer
+            C:Print(self, string.format("Version for %s updated to v%d.", C.mynameRealm, masterVer))
+            self:RefreshContent()
+        end)
+        actionRow:AddChild(syncVerBtn)
+    end
+
+    -- --- SECTION 2: GLOBAL OPTIONS ---
+    local optsHeader = AceGUI:Create("Heading")
+    optsHeader:SetText("Global Options")
+    optsHeader:SetFullWidth(true)
+    container:AddChild(optsHeader)
+
+    local chk = AceGUI:Create("CheckBox")
+    chk:SetLabel("Enable Force Sync (Ignores version checks)")
+    chk:SetFullWidth(true)
+    chk:SetValue(C.DB.bindpad.forceSync)
+    chk:SetCallback("OnValueChanged", function(_, _, value)
+        C.DB.bindpad.forceSync = value
+        C:Print(self, "Force Sync is now " .. (value and "|cff00ff00Enabled|r" or "|cffff0000Disabled|r"))
+    end)
+    container:AddChild(chk)
+
+    -- --- SECTION 3: CLASS VERSIONS (SORTED VIA ARRAY) ---
+    local versionGroup = AceGUI:Create("InlineGroup")
+    versionGroup:SetTitle("Class Master Versions")
+    versionGroup:SetFullWidth(true)
+    versionGroup:SetLayout("Flow")
+    container:AddChild(versionGroup)
+
+    -- Use ipairs on the array to ensure Mage (1) to Warlock (13) order
+    for _, data in ipairs(C.CLASS_MAINS) do
+        local class = data.class
+        local dbVersion = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[class]) or 1
+        local classColor = RAID_CLASS_COLORS[class] and RAID_CLASS_COLORS[class].colorStr or "ffffffff"
+
+        local row = AceGUI:Create("SimpleGroup")
+        row:SetLayout("Flow")
+        row:SetFullWidth(true)
+
+        local label = AceGUI:Create("Label")
+        label:SetText(string.format("|c%s%s|r (v%d)", classColor, class, dbVersion))
+        label:SetWidth(150)
+        row:AddChild(label)
+
+        local incBtn = AceGUI:Create("Button")
+        incBtn:SetText("+ Increase")
+        incBtn:SetWidth(120)
+        incBtn:SetCallback("OnClick", function()
+            if not C.DB.bindpad.mainVersions then C.DB.bindpad.mainVersions = {} end
+            C.DB.bindpad.mainVersions[class] = dbVersion + 1
+            C:Debug(self, "Bumped " .. class .. " to v" .. (dbVersion + 1))
+            self:RefreshContent()
+        end)
+        row:AddChild(incBtn)
+
+        local resetBtn = AceGUI:Create("Button")
+        resetBtn:SetText("Reset")
+        resetBtn:SetWidth(100)
+        resetBtn:SetCallback("OnClick", function()
+            if not C.DB.bindpad.mainVersions then C.DB.bindpad.mainVersions = {} end
+            C.DB.bindpad.mainVersions[class] = 1
+            C:Print(self, "Reset version for " .. class)
+            self:RefreshContent()
+        end)
+        row:AddChild(resetBtn)
+
+        versionGroup:AddChild(row)
     end
 end
 
 --- WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
-    local catOrder = {"Raid", "Dungeon", "World"}
-    local thresholds = {
-        ["Raid"] = {2, 4, 6},
-        ["Dungeon"] = {1, 4, 8},
-        ["World"] = {2, 4, 8}
-    }
     local charKey = C.mynameRealm
-
+    local catOrder = {"Raid", "Dungeon", "World"}
+    local thresholds = { ["Raid"] = {2, 4, 6}, ["Dungeon"] = {1, 4, 8}, ["World"] = {2, 4, 8} }
+    
     if not C.DB.vault then return end
 
-    -- 1. Gather Alts
+    -- 1. FIX: Gather and Filter Active Alts (Reward OR Slot 1 met)
+    local sortedNames = { charKey }
     local others = {}
-    for name in pairs(C.DB.vault) do
-        if name ~= charKey then table.insert(others, name) end
+    for name, data in pairs(C.DB.vault) do
+        if name ~= charKey then
+            local isActive = data.hasReward
+            if not isActive and data.categories then
+                for c, s in pairs(data.categories) do
+                    local t = thresholds[c] and thresholds[c][1] or 99
+                    -- Calculate max progress for this category
+                    local maxP = 0
+                    for _, slot in ipairs(s) do maxP = math.max(maxP, slot.progress or 0) end
+                    if maxP >= t then isActive = true; break end
+                end
+            end
+            if isActive then table.insert(others, name) end
+        end
     end
+    table.sort(others)
+    for _, n in ipairs(others) do table.insert(sortedNames, n) end
 
-    -- 2. Sort Alts by total aggregate progress
-    table.sort(others, function(a, b)
-        local function GetTotalProg(name)
-            local data = C.DB.vault[name]
-            local total = 0
-            if type(data) == "table" then
-                for _, cat in ipairs(catOrder) do
-                    if data[cat] then
-                        for i=1, 3 do
-                            if data[cat][i] and data[cat][i].progress then
-                                total = total + data[cat][i].progress
-                            end
+    -- 2. Master Rendering Loop
+    for _, name in ipairs(sortedNames) do
+        local data = C.DB.vault[name]
+        if data or name == charKey then
+            local isCurrent = (name == charKey)
+            
+            -- CARD: High-Density Container
+            local card = AceGUI:Create("InlineGroup")
+            local title = isCurrent and ("|cff00ff00" .. name .. "|r") or name
+            if data and data.hasReward then
+                title = title .. "  |TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:14:14:0:0|t |cff00ff00(REWARD!)|r"
+            end
+            card:SetTitle(title)
+            card:SetFullWidth(true)
+            card:SetLayout("Flow")
+            container:AddChild(card)
+
+            -- --- CONTENT: PROGRESS DASHBOARD ---
+            local cats = data and data.categories or {}
+            for _, catName in ipairs(catOrder) do
+                local charCat = cats[catName] or {}
+                local t = thresholds[catName]
+                
+                -- 1. Calculate Unlocked Count once per category row
+                local unlockedCount = 0
+                local maxP = 0
+                for _, s in ipairs(charCat) do 
+                    maxP = math.max(maxP, s.progress or 0) 
+                end
+                -- Correctly determine how many thresholds were hit
+                for i=1, 3 do if maxP >= t[i] then unlockedCount = i end end
+
+                if isCurrent or unlockedCount > 0 then
+                    local row = AceGUI:Create("SimpleGroup")
+                    row:SetFullWidth(true)
+                    row:SetLayout("Flow")
+                    card:AddChild(row)
+
+                    -- 2. Build the Bar String once
+                    local bar = ""
+                    for i=1, 3 do
+                        local tex = (unlockedCount >= i) 
+                            and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14:0:0|t" 
+                            or  "|TInterface\\RaidFrame\\ReadyCheck-NotReady:14:14:0:0|t"
+                        bar = bar .. tex
+                    end
+
+                    -- 3. Category Label (Fixed Width prevents duplication/wrapping)
+                    local catLabel = AceGUI:Create("Label")
+                    catLabel:SetText(bar .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode(catName))
+                    catLabel:SetWidth(160) -- Use a fixed pixel width instead of relative
+                    row:AddChild(catLabel)
+
+                    -- 4. Slots (Standard Grid)
+                    for i=1, 3 do
+                        local slot = charCat[i]
+                        local goal = t[i]
+                        local prev = t[i-1] or 0
+                        local cell = AceGUI:Create("Label")
+                        cell:SetWidth(100) -- Fixed width for consistent columns
+
+                        local val = "|cff808080Locked|r"
+                        if (maxP >= goal) then
+                            local lvl = (charCat[i] and charCat[i].level) or "??"
+                            val = string.format("|cff00aaff%silvl|r", lvl)
+                        elseif maxP > prev then
+                            val = string.format("|cff00ff00%d/%d|r", maxP, goal)
+                        elseif isCurrent and i == 1 then
+                            val = "|cff8080800/" .. goal .. "|r"
                         end
+
+                        cell:SetText(val)
+                        row:AddChild(cell)
                     end
                 end
             end
-            return total
-        end
-        local progA, progB = GetTotalProg(a), GetTotalProg(b)
-        if progA == progB then return a < b end
-        return progA > progB
-    end)
 
-    -- 3. Final List: Current Char -> Sorted Alts
-    local sortedNames = { charKey }
-    for _, name in ipairs(others) do table.insert(sortedNames, name) end
-
-    -- 4. Display
-    for i, name in ipairs(sortedNames) do
-        local isCurrent = (name == charKey)
-        local charData = C.DB.vault[name]
-        local isDummy = (isCurrent and (not charData or charData == "dummy"))
-
-        -- Header: Green for current, default for others
-        local charHeader = AceGUI:Create("Heading")
-        -- local headerText = isCurrent and ("|cff00ff00" .. name .. "|r") or name
-        local headerText = name
-        charHeader:SetText(headerText)
-        charHeader:SetFullWidth(true)
-        container:AddChild(charHeader)
-
-        local visibleCats = {}
-        for _, catName in ipairs(catOrder) do
-            local charCatData = (not isDummy and charData) and charData[catName] or {}
-            local maxProg = 0
-            for _, d in ipairs(charCatData) do 
-                if type(d) == "table" then maxProg = math.max(maxProg, d.progress or 0) end
-            end
-            if isCurrent or maxProg > 0 then table.insert(visibleCats, catName) end
-        end
-
-        for idx, catName in ipairs(visibleCats) do
-            local catThresholds = thresholds[catName]
-            local charCatData = (not isDummy and charData) and charData[catName] or {}
-
-            local currentProg = 0
-            for _, d in ipairs(charCatData) do
-                if type(d) == "table" and d.progress and d.progress > currentProg then 
-                    currentProg = d.progress 
-                end
-            end
-
-            local catLabel = AceGUI:Create("Label")
-            catLabel:SetText(NORMAL_FONT_COLOR:WrapTextInColorCode(catName))
-            catLabel:SetFontObject(GameFontNormal)
-            catLabel:SetFullWidth(true)
-            container:AddChild(catLabel)
-
-            local rowGroup = AceGUI:Create("SimpleGroup")
-            rowGroup:SetLayout("Flow")
-            rowGroup:SetFullWidth(true)
-            container:AddChild(rowGroup)
-
-            for slotIdx, threshold in ipairs(catThresholds) do
-                local slotData = charCatData[slotIdx]
-                local prevThreshold = catThresholds[slotIdx-1] or 0
-                local slotLabel = AceGUI:Create("Label")
-                slotLabel:SetRelativeWidth(0.33)
-
-                local displayText = ""
-                if slotData and slotData.progress and slotData.progress >= threshold then
-                    displayText = string.format("|cff00aaffilvl: %s|r", slotData.level or "??")
-                elseif currentProg > prevThreshold and currentProg < threshold and currentProg > 0 then
-                    displayText = string.format("|cff00ff00%d/%d|r", currentProg, threshold)
-                elseif slotIdx == 1 and currentProg == 0 and isCurrent then
-                    displayText = string.format("|cff808080%d/%d|r", currentProg, threshold)
-                else
-                    displayText = "|cff808080Locked|r"
-                end
-
-                slotLabel:SetText("  " .. displayText)
-                rowGroup:AddChild(slotLabel)
-            end
-
-            if idx < #visibleCats then
-                local s = AceGUI:Create("Label")
-                s:SetText(" ")
-                s:SetFullWidth(true)
-                container:AddChild(s)
-            end
+            -- Bottom Padding
+            local p = AceGUI:Create("Label")
+            p:SetText(" ")
+            p:SetFullWidth(true)
+            container:AddChild(p)
         end
     end
 end
@@ -354,54 +445,72 @@ end
 --- ELVUI PROFILE TAB
 function Panel:UpdateElvProfile(container)
     local currentName = C.mynameRealm
+    local currentStatus = EP:GetProfileStatus()
 
-    -- Helper to create a two-column row with right-aligned status
+    -- Helper for a clean, visible row
     local function AddCharacterRow(parent, name, status, isCurrent)
         local row = AceGUI:Create("SimpleGroup")
         row:SetFullWidth(true)
         row:SetLayout("Flow")
         parent:AddChild(row)
 
-        -- Character Name Label (Left)
+        -- 1. Name (Left side)
         local nameLabel = AceGUI:Create("Label")
-        nameLabel:SetText(isCurrent and NORMAL_FONT_COLOR:WrapTextInColorCode(name) or name)
-        nameLabel:SetRelativeWidth(0.6) -- Takes 60% of the width
+        nameLabel:SetText(isCurrent and "|cff00ff00" .. name .. "|r" or name)
+        nameLabel:SetWidth(180) -- Fixed width is safer than Relative for small panels
         nameLabel:SetFontObject(GameFontNormal)
         row:AddChild(nameLabel)
 
-        -- Status Label (Right)
-        local statusText = (status == "midnight") and "|cff00ff00" .. tostring(status) .. "|r" or "|cff00aaff" .. tostring(status) .. "|r"
-        if not status then statusText = "|cffff0000Pending|r" end
-
+        -- 2. Status (Right side)
+        local statusText = "|cff00aaff" .. tostring(status or "Pending") .. "|r"
+        if status == "midnight" then statusText = "|cff00ff00midnight|r" end
+        
         local statusLabel = AceGUI:Create("Label")
         statusLabel:SetText(statusText)
-        statusLabel:SetRelativeWidth(0.4) -- Takes 40% of the width
-        statusLabel:SetJustifyH("RIGHT")  -- Anchors text to the right
+        statusLabel:SetWidth(120)
+        statusLabel:SetJustifyH("RIGHT")
         statusLabel:SetFontObject(GameFontNormal)
         row:AddChild(statusLabel)
     end
 
-    -- 1. Current Character Section
-    local topHeader = AceGUI:Create("Heading")
-    topHeader:SetText("Current Character")
-    topHeader:SetFullWidth(true)
-    container:AddChild(topHeader)
+    -- --- SECTION 1: LOCAL CHARACTER ---
+    local localGroup = AceGUI:Create("InlineGroup")
+    localGroup:SetTitle("Local Status")
+    localGroup:SetFullWidth(true)
+    localGroup:SetLayout("Flow")
+    container:AddChild(localGroup)
 
-    local currentStatus = EP:GetProfileStatus()
-    AddCharacterRow(container, currentName, currentStatus, true)
+    AddCharacterRow(localGroup, currentName, currentStatus, true)
 
-    -- 2. Other Characters Section
-    local otherHeader = AceGUI:Create("Heading")
-    otherHeader:SetText("Other Characters")
-    otherHeader:SetFullWidth(true)
-    container:AddChild(otherHeader)
+    -- --- SECTION 2: PROFILE DATABASE ---
+    local dbGroup = AceGUI:Create("InlineGroup")
+    dbGroup:SetTitle("Profile Database")
+    dbGroup:SetFullWidth(true)
+    dbGroup:SetLayout("Flow")
+    container:AddChild(dbGroup)
 
     if C.DB.elvui then
-        for name, profile in pairs(C.DB.elvui) do
-            if name ~= currentName then
-                AddCharacterRow(container, name, profile, false)
+        -- Correctly gathering keys from the ELVUI table, not the vault
+        local names = {}
+        for name in pairs(C.DB.elvui) do
+            if name ~= currentName then 
+                table.insert(names, name) 
             end
         end
+        table.sort(names)
+
+        if #names > 0 then
+            for _, name in ipairs(names) do
+                AddCharacterRow(dbGroup, name, C.DB.elvui[name], false)
+            end
+        else
+            local empty = AceGUI:Create("Label")
+            empty:SetText("\n|cff808080No other profiles found.|r")
+            empty:SetFullWidth(true)
+            dbGroup:AddChild(empty)
+        end
+    else
+        C:Debug(self, "C.DB.elvui is nil")
     end
 end
 
@@ -409,106 +518,98 @@ end
 function Panel:UpdateDev(container)
     local dev = C.DB.dev
     if not dev then return end
-
-    -- Ensure the filter table exists in your SavedVariables
     dev.moduleFilter = dev.moduleFilter or {}
 
-    -- 1. Main Header
-    local header = AceGUI:Create("Heading")
-    header:SetText("Developer Mode Settings")
-    header:SetFullWidth(true)
-    container:AddChild(header)
+    -- --- SECTION 1: GLOBAL DEBUG SETTINGS ---
+    local globalGroup = AceGUI:Create("InlineGroup")
+    globalGroup:SetTitle("Global Debug Mode")
+    globalGroup:SetFullWidth(true)
+    globalGroup:SetLayout("Flow")
+    container:AddChild(globalGroup)
 
-    -- 2. Debug Mode Toggle
     local debugToggle = AceGUI:Create("CheckBox")
     debugToggle:SetLabel("Enable Master Debug Mode")
     debugToggle:SetValue(dev.debugMode or false)
-    debugToggle:SetCallback("OnValueChanged", function(_, _, value)
-        dev.debugMode = value
-    end)
-    debugToggle:SetFullWidth(true)
-    container:AddChild(debugToggle)
+    debugToggle:SetRelativeWidth(0.5)
+    debugToggle:SetCallback("OnValueChanged", function(_, _, value) dev.debugMode = value end)
+    globalGroup:AddChild(debugToggle)
 
-    -- 3. Module Status Toggle
     local statusToggle = AceGUI:Create("CheckBox")
     statusToggle:SetLabel("Show Module Load Status")
     statusToggle:SetValue(dev.showModuleStatus or false)
-    statusToggle:SetCallback("OnValueChanged", function(_, _, value)
-        dev.showModuleStatus = value
-    end)
-    statusToggle:SetFullWidth(true)
-    container:AddChild(statusToggle)
+    statusToggle:SetRelativeWidth(0.5)
+    statusToggle:SetCallback("OnValueChanged", function(_, _, value) dev.showModuleStatus = value end)
+    globalGroup:AddChild(statusToggle)
 
-    -- 4. Module Filter Section
-    local modHeader = AceGUI:Create("Heading")
-    modHeader:SetText("Active Module Debug Filters")
-    modHeader:SetFullWidth(true)
-    container:AddChild(modHeader)
+    -- --- SECTION 2: MODULE DEBUG FILTERS ---
+    local filterGroup = AceGUI:Create("InlineGroup")
+    filterGroup:SetTitle("Active Module Filters")
+    filterGroup:SetFullWidth(true)
+    filterGroup:SetLayout("Flow")
+    container:AddChild(filterGroup)
 
-    local moduleGroup = AceGUI:Create("SimpleGroup")
-    moduleGroup:SetFullWidth(true)
-    moduleGroup:SetLayout("Flow")
-    container:AddChild(moduleGroup)
+    -- Quick Toggle Row
+    local filterActions = AceGUI:Create("SimpleGroup")
+    filterActions:SetLayout("Flow")
+    filterActions:SetFullWidth(true)
+    filterGroup:AddChild(filterActions)
 
-    -- Dynamically iterate through all registered AceModules
+    local function SetAllFilters(state)
+        for name, _ in C:IterateModules() do dev.moduleFilter[name] = state end
+        self:RefreshContent()
+    end
+
+    local btnAll = AceGUI:Create("Button")
+    btnAll:SetText("Enable All")
+    btnAll:SetRelativeWidth(0.5)
+    btnAll:SetCallback("OnClick", function() SetAllFilters(true) end)
+    filterActions:AddChild(btnAll)
+
+    local btnNone = AceGUI:Create("Button")
+    btnNone:SetText("Disable All")
+    btnNone:SetRelativeWidth(0.5)
+    btnNone:SetCallback("OnClick", function() SetAllFilters(false) end)
+    filterActions:AddChild(btnNone)
+
+    -- The Module List
     for name, _ in C:IterateModules() do
         local cb = AceGUI:Create("CheckBox")
         cb:SetLabel(name)
         cb:SetRelativeWidth(0.5) -- Two columns
-
-        -- Set current saved state (default to false if never set)
         cb:SetValue(dev.moduleFilter[name] == true)
-
         cb:SetCallback("OnValueChanged", function(_, _, value)
             dev.moduleFilter[name] = value
-            C:Print(self, "Debug for |cff00aaff" .. name .. "|r set to: " .. (value and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
+            C:Debug(self, "Filter for " .. name .. " set to " .. tostring(value))
         end)
-        moduleGroup:AddChild(cb)
+        filterGroup:AddChild(cb)
     end
 
-    -- 5. Spacer & Reload
-    local spacer = AceGUI:Create("Label")
-    spacer:SetText(" ")
-    spacer:SetFullWidth(true)
-    container:AddChild(spacer)
+    -- --- SECTION 3: MODULE COMMANDS ---
+    local cmdGroup = AceGUI:Create("InlineGroup")
+    cmdGroup:SetTitle("Quick Commands")
+    cmdGroup:SetFullWidth(true)
+    cmdGroup:SetLayout("Flow")
+    container:AddChild(cmdGroup)
 
-    -- Header & Group (Same as before)
-    local modHeader = AceGUI:Create("Heading")
-    modHeader:SetText("Module Commands")
-    modHeader:SetFullWidth(true)
-    container:AddChild(modHeader)
-
-    local btnGroup = AceGUI:Create("SimpleGroup")
-    btnGroup:SetLayout("Flow")
-    btnGroup:SetFullWidth(true)
-    container:AddChild(btnGroup)
-
-    -- 1. Point the loop directly to your new manifest
     for _, cmd in ipairs(Dev.COMMAND_MANIFEST) do
         local btn = AceGUI:Create("Button")
         btn:SetText(cmd.name)
-        btn:SetRelativeWidth(0.33) -- Three buttons per row
-
-        -- 2. Refactored Callback
+        btn:SetRelativeWidth(0.33)
         btn:SetCallback("OnClick", function()
-            -- Explicitly look for the function name in the Dev module
             local action = Dev[cmd.func]
-
             if type(action) == "function" then
-                -- Execute as Dev:FunctionName(Dev)
-                action(Dev) 
-
-                -- Use your framework's Debug (C) to confirm
-                C:Debug(Dev, "Executed:", cmd.name)
+                action(Dev)
+                C:Debug(Dev, "Executed Command:", cmd.name)
             else
-                print("|cffff0000Error:|r Dev:" .. tostring(cmd.func) .. "() not found!")
+                C:Print(self, "|cffff0000Error:|r Function " .. tostring(cmd.func) .. " missing.")
             end
         end)
-        btnGroup:AddChild(btn)
+        cmdGroup:AddChild(btn)
     end
 
+    -- --- SECTION 4: APPLY & RELOAD ---
     local reloadBtn = AceGUI:Create("Button")
-    reloadBtn:SetText("Apply Changes & Reload")
+    reloadBtn:SetText("Apply Changes & Reload UI")
     reloadBtn:SetFullWidth(true)
     reloadBtn:SetCallback("OnClick", function() ReloadUI() end)
     container:AddChild(reloadBtn)
@@ -539,7 +640,7 @@ function Panel:UpdateQuests(container)
         -- Status colors are kept (Green/Red) for functional readability
         statusLabel:SetText(isDone and "|cff00ff00Done|r" or "|cffff0000Pending|r")
         statusLabel:SetRelativeWidth(0.4)
-        statusLabel:SetJustifyH("RIGHT") 
+        statusLabel:SetJustifyH("RIGHT")
         row:AddChild(statusLabel)
     end
 
@@ -698,10 +799,10 @@ end
 -- Module Visibility
 function Panel:Toggle()
     -- If the frame was released (closed via X), recreate it
-    if not self.Frame then 
-        self:Create() 
+    if not self.Frame then
+        self:Create()
         self.Frame:Show()
-        return 
+        return
     end
 
     -- Otherwise, just flip visibility
@@ -717,7 +818,7 @@ function Panel:OnInitialize()
     self:Create()
 
     -- Ensure it's hidden on login
-    if self.Frame then 
-        self.Frame:Hide() 
+    if self.Frame then
+        self.Frame:Hide()
     end
 end

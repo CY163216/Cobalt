@@ -13,45 +13,57 @@ function WV:Check()
     local charKey = C.mynameRealm
     if not charKey then return end
 
-    C.DB.vault = C.DB.vault or {}
+    -- Get current week's ID to identify stale progress
+    local currentWeek = C_DateAndTime.GetSecondsUntilWeeklyReset() 
+    local hasUncollected = C_WeeklyRewards.HasAvailableRewards()
 
-    local charData = {}
+    local charData = {
+        lastUpdate = time(),
+        hasReward = hasUncollected,
+        categories = {}
+    }
+    
     local totalProgress = 0
-
     for categoryID, categoryName in pairs(CATEGORIES) do
         local activities = C_WeeklyRewards.GetActivities(categoryID)
-        charData[categoryName] = {}
-
-        if activities then
-            -- Sort by index to ensure slot 1, 2, 3 order
-            table.sort(activities, function(a, b) return a.index < b.index end)
-
-            for i, activity in ipairs(activities) do
-                -- Sum up progress to see if character is "active"
+        if activities and #activities > 0 then
+            charData.categories[categoryName] = {}
+            for _, activity in ipairs(activities) do
                 totalProgress = totalProgress + (activity.progress or 0)
-
-                table.insert(charData[categoryName], {
-                    index     = activity.index,
-                    unlocked  = activity.progress >= activity.threshold,
-                    progress  = activity.progress,
+                table.insert(charData.categories[categoryName], {
+                    progress = activity.progress,
                     threshold = activity.threshold,
-                    level     = activity.level,
+                    level = activity.level,
                 })
             end
         end
     end
 
-    -- If total progress across all categories is > 0, save the data
-    if totalProgress > 0 then
+    -- LOGIC: Save if they have progress OR if they have a reward waiting
+    if totalProgress > 0 or hasUncollected then
         C.DB.vault[charKey] = charData
-        C:Debug(self, "Updated for:", charKey)
     else
-        -- Wipe the character key if they have 0 progress
-        C.DB.vault[charKey] = nil
-        C:Debug(self, "(Zero Progress) for:", charKey)
+        C.DB.vault[charKey] = nil -- Truly empty
     end
 end
 
+function WV:ClearStaleProgress()
+    local lastReset = self:GetLastResetTime() -- Function from previous step
+
+    for charKey, data in pairs(C.DB.vault) do
+        -- If data is from last week
+        if (data.lastUpdate or 0) < lastReset then
+            if data.hasReward then
+                -- Keep the entry, but clear the progress bars
+                data.categories = {} 
+                C:Debug(self, charKey .. " has old rewards; hiding progress but keeping alert.")
+            else
+                -- No reward and old data? Wipe it.
+                C.DB.vault[charKey] = nil
+            end
+        end
+    end
+end
 
 function WV:ShowVaultAlert()
     if self.alertShown then return end -- Safety check
