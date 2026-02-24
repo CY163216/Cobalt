@@ -35,7 +35,7 @@ local NAV_MENU = {
     { name = "Vault",      method = "UpdateVault" },
     { name = "Quests",     method = "UpdateQuests" },
     { name = "Decor",      method = "UpdateDecor" },
-    { name = "Binds",      method = "UpdateBindPad" },
+    { name = "BindPad",    method = "UpdateBindPad" },
     { name = "ElvUI",      method = "UpdateElvProfile" },
     { name = "Dev",        method = "UpdateDev" }
 }
