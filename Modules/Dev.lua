@@ -104,30 +104,6 @@ function Dev:SetupIgnoreBindPadDB()
     C:Print(self, "Initial BP ignore db setup.")
 end
 
-function Dev:ForceTSMMacroSync()
-    -- 1. Check if TSM is loaded
-    if not TSM or not TSM.db or not TSM.Macro then return end
-
-    -- 2. Apply your specific settings from the image
-    local macroDB = TSM.db.global.userData.macro
-    macroDB.auctioning = true
-    macroDB.buyoutConf = true
-    macroDB.crafting = false
-    macroDB.scrollUp = true
-    macroDB.scrollDown = true
-    macroDB.modifiers.ctrl = true
-    macroDB.modifiers.alt = false
-    macroDB.modifiers.shift = false
-
-    -- 3. Trigger the update function (must be out of combat)
-    if not InCombatLockdown() then
-        TSM.Macro:Update()
-        C:Print("TSM Macro updated?")
-    else
-        C:Print("Addon: Cannot update TSM macro in combat!")
-    end
-end
-
 
 -- =====================================================
 -- Dev MANIFEST
@@ -137,11 +113,10 @@ Dev.COMMAND_MANIFEST = {
     { name = "Test Data", func = "AddTestData", slash = "addtest" },
     { name = "Wipe Test Data", func = "WipeTestData", slash = "wipetest" },
     { name = "testdb", func = "Testdb", slash = "testdb" },
-    { name = "lovecheck", func = "CheckLoveHoliday", slash = "love" },
+    { name = "lovecheck", func = "CheckLoveHoliday", slash = "love", desc = "check if Love is in the Air is active"},
     { name = "migrate bp", func = "MigrateBindPadDB", slash = "bp" },
     { name = "new bp", func = "SetupNewBindPadDB", slash = "newbp" },
-    { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" },
-    { name = "tsm", func = "ForceTSMMacroSync", slash = "tsm" }
+    { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" }
 }
 
 function Dev:SlashHandler(input)
@@ -149,7 +124,7 @@ function Dev:SlashHandler(input)
     if not input or input == "" then
         print("|cff00aaffCobalt Dev Commands:|r")
         for _, cmd in ipairs(Dev.COMMAND_MANIFEST) do
-            print(string.format("  /cdev |cff00ff00%s|r - %s", cmd.slash, cmd.name))
+            print(string.format("  /cdev |cff00ff00%s|r - %s", cmd.slash, (cmd.desc or cmd.name)))
         end
         return
     end
