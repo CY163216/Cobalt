@@ -28,14 +28,16 @@ function M:SyncBinds()
     -- skip character is it's set to ignore
     if ignore then C:Debug(self, string.format("Version set to ignore, (v%d -> v%d).", myCurrentVer, targetVer)) return end
 
-
     -- 2. Main Character Logic: Just update the DB to match the Master Version
     if C.mynameRealm == config.main then
         if myCurrentVer ~= targetVer then
             C.DB.bindpad.chars[C.mynameRealm] = targetVer
-            C:Debug(self, "Main Character updated to v" .. targetVer)
+            C:Debug(self, string.format("Main Character updated to (v%d -> v%d).", myCurrentVer, targetVer))
+            return
+        else
+            C:Debug(self, "Main Character on correct version v" .. targetVer)
+            return
         end
-        return
     end
 
     -- 3. Sync Condition: Is forceSync on, or is the Master Version higher than ours?
@@ -82,8 +84,7 @@ function M:SetupIgnoreList()
     local count = 0
     for charKey, data in pairs(C.ROSTER) do
         -- 2. Check if the character is a banker in the hardcoded ROSTER
-        if data.roles and data.roles.banker then
-            
+        if data.roles and data.roles.banker then    
             -- 3. ONLY proceed if the key does not exist yet (is nil)
             -- This respects existing 'true' OR 'false' saved values
             if C.DB.bindpad.ignore[charKey] == nil then
