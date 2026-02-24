@@ -1,8 +1,5 @@
 local C = select(2, ...)
-
--- =====================================================
--- Constants
--- =====================================================
+--#region MARK: CONSTANTS
 C.myfaction, C.myLocalizedFaction = UnitFactionGroup('player')
 C.myLocalizedClass, C.myclass, C.myClassID = UnitClass('player')
 C.myLocalizedRace, C.myrace, C.myRaceID = UnitRace('player')
@@ -458,10 +455,9 @@ C.TRACKED_QUESTS = {
     { name = "Love is in the Air", horde = 78985, alliance = 78379, isHoliday = true },
     -- { name = "Lunar Festival",    horde = 12345, alliance = 67890, isHoliday = true },
 }
+--#endregion
 
--- =====================================================
--- Loader Functions (Filtered Debugging with Fallback)
--- =====================================================
+--#region MARK: LOADER FUNCTIONS
 local function Log(prefix, hex, module, ...)
     local name = (type(module) == "table" and module.GetName) and module:GetName() or tostring(module or "CX")
     print(prefix, string.format("[|cff%s%s|r]", hex, name), ...)
@@ -525,10 +521,8 @@ function C:SlashHandler(input)
         self:Print("Usage: /cobalt [toggle]")
     end
 end
+--#endregion
 
--- =====================================================
--- Lifecycle
--- =====================================================
 function C:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 end

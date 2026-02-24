@@ -104,7 +104,6 @@ function Dev:SetupIgnoreBindPadDB()
     C:Print(self, "Initial BP ignore db setup.")
 end
 
-
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================

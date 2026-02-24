@@ -12,9 +12,6 @@ C.callbacks = C.callbacks or CallbackHandler:New(C)
 C.wowpatch, C.wowbuild, C.wowdate, C.wowtoc = GetBuildInfo()
 C.locale = GetLocale()
 
--- =====================================================
--- Module Registration
--- =====================================================
 C.AH                = C:NewModule("AH", "AceEvent-3.0")
 C.BindPad           = C:NewModule("BindPad")
 C.Decor             = C:NewModule("Decor")
@@ -28,9 +25,6 @@ C.SharedMedia       = C:NewModule("SharedMedia")
 C.Vault             = C:NewModule("Vault", "AceEvent-3.0")
 C.Warmode           = C:NewModule("Warmode", "AceEvent-3.0")
 
--- =====================================================
--- Library Registry
--- =====================================================
 C.Libs      = {}
 C.LibsMinor = {}
 
@@ -43,7 +37,6 @@ function C:AddLib(name, major, minor)
     end
 end
 
--- Add libraries
 C:AddLib("AceAddon", AceAddon, AceAddonMinor)
 C:AddLib("AceGUI", "AceGUI-3.0")
 C:AddLib("AceDB", "AceDB-3.0")
