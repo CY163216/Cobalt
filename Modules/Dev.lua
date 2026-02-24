@@ -99,6 +99,11 @@ function Dev:SetupNewBindPadDB()
     C:Print(self, "Initial BP versions DB setup done.")
 end
 
+function Dev:SetupIgnoreBindPadDB()
+    C.DB.bindpad.ignore = {}
+    C:Print(self, "Initial BP ignore db setup.")
+end
+
 
 -- =====================================================
 -- Dev MANIFEST
@@ -111,6 +116,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "lovecheck", func = "CheckLoveHoliday", slash = "love" },
     { name = "migrate bp", func = "MigrateBindPadDB", slash = "bp" },
     { name = "new bp", func = "SetupNewBindPadDB", slash = "newbp" },
+    { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" }
 
 }
 

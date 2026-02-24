@@ -99,7 +99,7 @@ function Panel:UpdateNavigation()
     end
 end
 
---- DECOR TAB
+--#region DECOR TAB
 function Panel:UpdateDecor(container)
     -- --- SECTION 1: CONFIGURATION (As before) ---
     local configGroup = AceGUI:Create("InlineGroup")
@@ -187,8 +187,9 @@ function Panel:UpdateDecor(container)
         end
     end
 end
+--#endregion
 
---- BINDPAD SYNC TAB
+--#region BINDPAD SYNC TAB
 function Panel:UpdateBindPad(container)
     -- Instant lookup using your new static map
     local config = C.CLASS_PRIORITY[C.myclass]
@@ -262,6 +263,20 @@ function Panel:UpdateBindPad(container)
         end)
         actionRow:AddChild(syncVerBtn)
     end
+    
+    -- Toggle: Ignore This Character
+    local ignoreChk = AceGUI:Create("CheckBox")
+    ignoreChk:SetLabel("Ignore this Char")
+    ignoreChk:SetWidth(160)
+    -- Ensure table exists before checking value
+    ignoreChk:SetValue(C.DB.bindpad.ignore and C.DB.bindpad.ignore[C.mynameRealm] or false)
+    ignoreChk:SetCallback("OnValueChanged", function(_, _, value)
+        if not C.DB.bindpad.ignore then C.DB.bindpad.ignore = {} end
+        C.DB.bindpad.ignore[C.mynameRealm] = value
+        C:Print(self, C.mynameRealm .. " is now " .. (value and "|cffff0000Ignored|r" or "|cff00ff00Tracked|r"))
+        -- Optional: self:RefreshContent() if other UI elements react to this
+    end)
+    actionRow:AddChild(ignoreChk)
 
     -- --- SECTION 2: GLOBAL OPTIONS ---
     local optsHeader = AceGUI:Create("Heading")
@@ -326,6 +341,7 @@ function Panel:UpdateBindPad(container)
         versionGroup:AddChild(row)
     end
 end
+--#endregion
 
 --- WEEKLY VAULT TAB
 function Panel:UpdateVault(container)

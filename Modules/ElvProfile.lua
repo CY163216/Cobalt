@@ -4,16 +4,6 @@ local M = C:GetModule("ElvProfile")
 -- Constants
 local TARGET_PROFILE = "midnight"
 
-local IgnoreList = {
-    ["Melios"] = "banker",
-    ["Kujaku"] = "banker",
-    ["Jisumi"] = "banker",
-    ["Shipusuheddo"] = "banker",
-    ["Kozaburo"] = "banker",
-    ["Kurogan"] = "banker",
-    ["Cygnax"] = "banker"
-}
-
 StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
     text = "|cff00aaffCobalt:|r ElvUI profiles updated to '|cff00ff00" .. TARGET_PROFILE .. "|r'. Reload required.",
     button1 = "Reload UI",
@@ -101,11 +91,11 @@ function M:OnEnable()
         return
     end
 
-    if IgnoreList[C.myname] then 
-        local statusType = IgnoreList[C.myname]
-        C:Debug(self, "Character in IgnoreList. Auto-marking as:", statusType)
+    if C:HasRole(C.mynameRealm, "banker") then
+        local statusType = "banker"
+        C:Debug(self, "Character found in ROSTER. Auto-marking as:", statusType)
         self:SetProfileStatus(statusType)
-        return 
+        return
     end
 
     self:CheckAndSetProfiles()

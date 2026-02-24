@@ -12,7 +12,7 @@ end
 
 function M:SyncBinds()
     -- Initialize DB structure if missing
-    C.DB.bindpad = C.DB.bindpad or { chars = {}, mainVersions = {}, forceSync = false }
+    C.DB.bindpad = C.DB.bindpad or { chars = {}, mainVersions = {}, forceSync = false, ignore = {} }
 
     local config = C.CLASS_PRIORITY[C.myclass]
     if not config or not C.mynameRealm then
@@ -23,6 +23,11 @@ function M:SyncBinds()
     -- 1. Master Version Check: Get the target version from our new DB table
     local targetVer = C.DB.bindpad.mainVersions[C.myclass] or 1
     local myCurrentVer = C.DB.bindpad.chars[C.mynameRealm] or 0
+    local ignore = C.DB.bindpad.ignore[C.mynameRealm] or false
+
+    -- skip character is it's set to ignore
+    if ignore then C:Debug(self, string.format("Version set to ignore, (v%d -> v%d).", myCurrentVer, targetVer)) return end
+
 
     -- 2. Main Character Logic: Just update the DB to match the Master Version
     if C.mynameRealm == config.main then
@@ -70,8 +75,34 @@ function M:SyncBinds()
     end
 end
 
+function M:SetupIgnoreList()
+    -- 1. Ensure the ignore table exists
+    if not C.DB.bindpad.ignore then C.DB.bindpad.ignore = {} end
+
+    local count = 0
+    for charKey, data in pairs(C.ROSTER) do
+        -- 2. Check if the character is a banker in the hardcoded ROSTER
+        if data.roles and data.roles.banker then
+            
+            -- 3. ONLY proceed if the key does not exist yet (is nil)
+            -- This respects existing 'true' OR 'false' saved values
+            if C.DB.bindpad.ignore[charKey] == nil then
+                C.DB.bindpad.ignore[charKey] = true
+                count = count + 1
+                C:Debug(self, "New banker auto-ignored:", charKey)
+            end
+        end
+    end
+
+    if count > 0 then
+        C:Debug(self, string.format("BindPad: %d new banker(s) initialized as ignored.", count))
+    end
+end
+
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
+
+    self:SetupIgnoreList()
 
     C_Timer.After(0.1, function()
         self:SyncBinds()
