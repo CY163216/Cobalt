@@ -14,6 +14,9 @@ function WV:Check(event, ...)
     local charKey = C.mynameRealm
     if not charKey then return end
 
+    local event = event or "NO_EVENT"
+    C:Debug(self, "Vault event: |cff0047AB" .. event .. "|r")
+
     -- 1. Calculate Reset Timestamps
     local now = time()
     local secondsToReset = C_DateAndTime.GetSecondsUntilWeeklyReset()
@@ -173,6 +176,11 @@ function WV:OnEnable()
     self:RegisterEvent("WEEKLY_REWARDS_UPDATE", "Check")
     self:RegisterEvent("CHALLENGE_MODE_COMPLETED", "Check")
     self:RegisterEvent("BOSS_KILL", "Check")
+    self:RegisterEvent("WEEKLY_REWARDS_ITEM_CHANGED", "Check")
+
+    self:RegisterEvent("LOOT_CLOSED", function()
+        C_Timer.After(1, function() self:Check("LOOT_CLOSED") end)
+    end)
 
     self:Check("ONENABLE")
 end
