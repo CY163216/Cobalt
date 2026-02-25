@@ -65,32 +65,25 @@ function WV:ClearStaleProgress()
     end
 end
 
+-- 1. Define the dialog (Do this once, outside the function)
+StaticPopupDialogs["WV_VAULT_ALERT"] = {
+    text = "|cff00ff00You have rewards waiting|r\n   in the Great Vault!",
+    button1 = "Understood",
+    OnAccept = function()
+        -- Logic for when they click "Understood"
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3, -- Prevents UI taint in modern WoW
+}
+
+-- 2. The function to show it
 function WV:ShowVaultAlert()
-    if self.alertShown then return end -- Safety check
+    if self.alertShown then return end
     self.alertShown = true
 
-    local frame = AceGUI:Create("Window")
-    frame:SetTitle("Vault Alert")
-    frame:SetWidth(250)
-    frame:SetHeight(120)
-    frame:SetLayout("List")
-    frame:EnableResize(false)
-    -- Center it on screen
-    frame:SetPoint("CENTER", UIParent, "CENTER", 0, 100)
-
-    local label = AceGUI:Create("Label")
-    label:SetText("\n   |cff00ff00You have rewards waiting|r\n   in the Great Vault!")
-    label:SetFullWidth(true)
-    frame:AddChild(label)
-
-    local btn = AceGUI:Create("Button")
-    btn:SetText("Understood")
-    btn:SetFullWidth(true)
-    btn:SetCallback("OnClick", function() frame:Hide() end)
-    frame:AddChild(btn)
-
-    -- Close automatically if the user enters combat
-    frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
+    StaticPopup_Show("WV_VAULT_ALERT")
 end
 
 function WV:OnEnable()
@@ -105,7 +98,7 @@ function WV:OnEnable()
     -- LOGIN CHECK: Only trigger if rewards are waiting to be claimed
     if C_WeeklyRewards.HasAvailableRewards() then
         -- Small delay to ensure the UI is fully loaded before popping the window
-        C_Timer.After(3, function()
+        C_Timer.After(5, function()
             self:ShowVaultAlert()
         end)
     end
