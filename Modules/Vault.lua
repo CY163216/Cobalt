@@ -8,6 +8,8 @@ local CATEGORIES = {
     [Enum.WeeklyRewardChestThresholdType.Raid]       = "Raid",    -- 3
     [Enum.WeeklyRewardChestThresholdType.World]      = "World",   -- 6
 }
+WV.CAT_ORDER = {"Raid", "Dungeon", "World"}
+WV.THRESHOLDS = { ["Raid"] = {2, 4, 6}, ["Dungeon"] = {1, 4, 8}, ["World"] = {2, 4, 8} }
 
 function WV:Check(event, ...)
     local charKey = C.mynameRealm
@@ -89,6 +91,42 @@ function WV:Check(event, ...)
     end
 end
 
+function WV:GetActiveVaultAlts()
+    local charKey = C.mynameRealm
+    if not C.DB.vault then return { charKey } end
+
+    -- Calculate Reset once
+    local now = time()
+    local thisWeekStart = (now + C_DateAndTime.GetSecondsUntilWeeklyReset()) - 604800
+
+    local sortedNames = { charKey }
+    local others = {}
+
+    for name, data in pairs(C.DB.vault) do
+        if name ~= charKey then
+            local isStale = data.lastUpdate and data.lastUpdate < thisWeekStart
+            local isActive = data.hasReward or isStale
+            
+            -- Only check categories if not already flagged active
+            if not isActive and data.categories then
+                for catName, slots in pairs(data.categories) do
+                    local t = WV.THRESHOLDS[catName]
+                    local maxP = 0
+                    for i=1, #slots do 
+                        if (slots[i].progress or 0) > maxP then maxP = slots[i].progress end 
+                    end
+                    if t and maxP >= t[1] then isActive = true; break end
+                end
+            end
+            if isActive then others[#others + 1] = name end
+        end
+    end
+    
+    table.sort(others)
+    for i=1, #others do sortedNames[#sortedNames + 1] = others[i] end
+    
+    return sortedNames, thisWeekStart
+end
 
 -- ##DEBUG Not being used
 function WV:ClearStaleProgress()

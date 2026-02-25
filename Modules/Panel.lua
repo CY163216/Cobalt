@@ -4,12 +4,11 @@ local BP = C:GetModule("BindPad")
 local DC = C:GetModule("Decor")
 local EP = C:GetModule("ElvProfile")
 local Dev = C:GetModule("Dev")
+local WV = C:GetModule("Vault")
 local AceGUI = C.Libs.AceGUI
 
 local _G = _G
 
-local string_format = _G.string.format
-local GetItemInfo = _G.C_Item.GetItemInfo
 local GetCoinTextureString = _G.C_CurrencyInfo.GetCoinTextureString
 local GameTooltip = _G.GameTooltip
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
@@ -358,137 +357,95 @@ end
 
 --#region MARK:  WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
+    local WV = C:GetModule("Vault") -- Get the module reference
     local charKey = C.mynameRealm
-    local catOrder = {"Raid", "Dungeon", "World"}
-    local thresholds = { ["Raid"] = {2, 4, 6}, ["Dungeon"] = {1, 4, 8}, ["World"] = {2, 4, 8} }
-
-    if not C.DB.vault then return end
-
-    -- 1. FIX: Gather and Filter Active Alts (Reward OR Slot 1 met)
-    local sortedNames = { charKey }
-    local others = {}
-    for name, data in pairs(C.DB.vault) do
-        if name ~= charKey then
-            local isActive = data.hasReward
-            if not isActive and data.categories then
-                for c, s in pairs(data.categories) do
-                    local t = thresholds[c] and thresholds[c][1] or 99
-                    -- Calculate max progress for this category
-                    local maxP = 0
-                    for _, slot in ipairs(s) do maxP = math.max(maxP, slot.progress or 0) end
-                    if maxP >= t then isActive = true; break end
-                end
-            end
-            if isActive then table.insert(others, name) end
-        end
-    end
-    table.sort(others)
-    for _, n in ipairs(others) do table.insert(sortedNames, n) end
+    
+    -- 1. Get processed data from the Vault module
+    local sortedNames, thisWeekStart = WV:GetActiveVaultAlts()
 
     -- 2. Master Rendering Loop
     for _, name in ipairs(sortedNames) do
         local data = C.DB.vault[name]
         if data or name == charKey then
             local isCurrent = (name == charKey)
-
-            -- CARD: High-Density Container
+            local isStale = data and data.lastUpdate and data.lastUpdate < thisWeekStart
+            
+            -- CARD: AceGUI Setup
             local card = AceGUI:Create("InlineGroup")
-            local title = isCurrent and ("|cff00ff00" .. name .. "|r") or name
-            if data and data.hasReward then
-                title = title .. "  |TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:14:14:0:0|t |cff00ff00(REWARD!)|r"
+            local displayName = isCurrent and ("|cff00ff00" .. name .. "|r") or NORMAL_FONT_COLOR:WrapTextInColorCode(name)
+            
+            if data and (data.hasReward or isStale) then
+                displayName = displayName .. "  |TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:14:14:0:0|t |cff00ff00(REWARD!)|r"
             end
-            card:SetTitle(title)
+            
+            card:SetTitle(displayName)
             card:SetFullWidth(true)
             card:SetLayout("Flow")
             container:AddChild(card)
 
-            -- --- CONTENT: PROGRESS DASHBOARD ---
             local cats = data and data.categories or {}
-            local unlockedCountTotal = 0
-            for catNum, catName in ipairs(catOrder) do
+            
+            for _, catName in ipairs(WV.CAT_ORDER) do
                 local charCat = cats[catName] or {}
-                local t = thresholds[catName]
-
-                -- 1. Calculate Unlocked Count once per category row
-                local unlockedCount = 0
+                local t = WV.THRESHOLDS[catName]
+                
                 local maxP = 0
-                for _, s in ipairs(charCat) do
-                    maxP = math.max(maxP, s.progress or 0)
-                end
-                -- Correctly determine how many thresholds were hit
-                for i=1, 3 do
-                    if maxP >= t[i] then
-                        unlockedCount = i
-                        unlockedCountTotal = unlockedCountTotal + 1
-                    end
-                end
+                for i=1, #charCat do maxP = math.max(maxP, charCat[i].progress or 0) end
 
-                if isCurrent or unlockedCount > 0 then
+                local slotsEarned = 0
+                for i=1, 3 do if maxP >= t[i] then slotsEarned = i end end
+
+                if isCurrent or slotsEarned > 0 then
                     local row = AceGUI:Create("SimpleGroup")
-                    row:SetFullWidth(true)
-                    row:SetLayout("Flow")
+                    row:SetFullWidth(true) row:SetLayout("Flow")
                     card:AddChild(row)
 
-                    -- 2. Build the Bar String once
                     local bar = ""
                     for i=1, 3 do
-                        local tex = (unlockedCount >= i)
-                            and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14:0:0|t"
-                            or  "|TInterface\\RaidFrame\\ReadyCheck-NotReady:14:14:0:0|t"
-                        bar = bar .. tex
+                        local icon = (slotsEarned >= i) and "Ready" or "NotReady"
+                        bar = bar .. "|TInterface\\RaidFrame\\ReadyCheck-" .. icon .. ":14:14:0:0|t"
                     end
 
-                    -- 3. Category Label (Fixed Width prevents duplication/wrapping)
                     local catLabel = AceGUI:Create("Label")
                     catLabel:SetText(bar .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode(catName))
-                    catLabel:SetWidth(160) -- Use a fixed pixel width instead of relative
+                    catLabel:SetWidth(140)
                     row:AddChild(catLabel)
 
-                    -- 4. Slots (Standard Grid)
                     for i=1, 3 do
                         local slot = charCat[i]
-                        local goal = t[i]
-                        local prev = t[i-1] or 0
                         local cell = AceGUI:Create("Label")
-                        cell:SetWidth(100) -- Fixed width for consistent columns
+                        cell:SetWidth(90)
 
                         local val = "|cff808080Locked|r"
-                        if (maxP >= goal) then
-                            local lvl = (slot and slot.level) or "??"
-                            val = string.format("|cff00aaff%silvl|r", lvl)
-                        elseif maxP > prev then
-                            val = string.format("|cff00ff00%d/%d|r", maxP, goal)
-                        elseif isCurrent and i == 1 then
-                            val = "|cff8080800/" .. goal .. "|r"
+                        if isStale then
+                            if maxP >= t[i] then
+                                val = string.format("|cff00ff00ilvl: %s|r", slot.level or "??")
+                            else
+                                val = "|cff444444---|r"
+                            end
+                        else
+                            if maxP >= t[i] then
+                                val = string.format("|cff00aaffilvl: %s|r", slot.level or "??")
+                            elseif maxP > (t[i-1] or 0) then
+                                val = NORMAL_FONT_COLOR:WrapTextInColorCode(string.format("%d/%d", maxP, t[i]))
+                            elseif isCurrent and i == 1 then
+                                val = "|cff8080800/" .. t[i] .. "|r"
+                            end
                         end
-
                         cell:SetText(val)
                         row:AddChild(cell)
                     end
                 end
-
-                -- Display simple text when there is no progress but there is a vault reward
-                if catNum == 3 and (not isCurrent and unlockedCountTotal == 0 and data.hasReward) then
-                    local row = AceGUI:Create("SimpleGroup")
-                    row:SetFullWidth(true)
-                    row:SetLayout("Flow")
-                    card:AddChild(row)
-
-                    local catLabel = AceGUI:Create("Label")
-                    catLabel:SetText("Visit vault!")
-                    catLabel:SetWidth(160) -- Use a fixed pixel width instead of relative
-                    row:AddChild(catLabel)
-                end
             end
 
-            -- Bottom Padding
+            -- Spacer
             local p = AceGUI:Create("Label")
-            p:SetText(" ")
-            p:SetFullWidth(true)
+            p:SetText(" ") p:SetFullWidth(true)
             container:AddChild(p)
         end
     end
 end
+
 --#endregion
 
 --- ELVUI PROFILE TAB
