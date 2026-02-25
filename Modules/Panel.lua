@@ -189,7 +189,7 @@ function Panel:UpdateDecor(container)
 end
 --#endregion
 
---#region BINDPAD SYNC TAB
+--#region MARK: BINDPAD SYNC TAB
 function Panel:UpdateBindPad(container)
     -- Instant lookup using your new static map
     local config = C.CLASS_PRIORITY[C.myclass]
@@ -242,7 +242,7 @@ function Panel:UpdateBindPad(container)
         btn:SetWidth(140)
         btn:SetCallback("OnClick", function()
             if not C.DB.bindpad.chars then C.DB.bindpad.chars = {} end
-            C.DB.bindpad.chars[C.mynameRealm] = 0
+            C.DB.bindpad.chars[C.mynameRealm] = masterVer
             BP:SyncBinds()
             self:RefreshContent()
             C:Debug(self, "Manual sync triggered for " .. C.mynameRealm)
