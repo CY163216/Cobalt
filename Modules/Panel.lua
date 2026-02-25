@@ -152,14 +152,14 @@ function Panel:UpdateDecor(container)
             local nameLabel = AceGUI:Create("InteractiveLabel")
             nameLabel:SetText("|cff808080Loading...|r") -- Placeholder
             nameLabel:SetWidth(180)
-            
+
             -- Use Mixin to force server query for missing item names
             local itemObj = Item:CreateFromItemID(item.id)
             itemObj:ContinueOnItemLoad(function()
                 local realName = itemObj:GetItemName()
                 local itemData = DECOR_MAP[item.id]
                 local expColor = (itemData and itemData.type and itemData.type.exp) and itemData.type.exp.color or "|cffffffff"
-                
+
                 nameLabel:SetText(expColor .. realName .. "|r")
             end)
 
@@ -224,7 +224,7 @@ function Panel:UpdateBindPad(container)
     local verColor = (myCurrentVer < targetVer) and "|cffff0000" or "|cff00ff00"
 
     local info = AceGUI:Create("Label")
-    info:SetText(string.format("Role: %s  |  Main: |cff00ff00%s|r  |  Version: %sv%d / v%d|r", 
+    info:SetText(string.format("Role: %s  |  Main: |cff00ff00%s|r  |  Version: %sv%d / v%d|r",
         statusText, config.main, verColor, myCurrentVer, targetVer))
     info:SetFontObject(GameFontNormal)
     info:SetFullWidth(true)
@@ -249,6 +249,18 @@ function Panel:UpdateBindPad(container)
             C:Debug(self, "Manual sync triggered for " .. C.mynameRealm)
         end)
         actionRow:AddChild(btn)
+    else
+        local btn = AceGUI:Create("Button")
+        btn:SetText("Master Version+")
+        btn:SetWidth(140)
+        btn:SetCallback("OnClick", function()
+            targetVer = targetVer + 1
+            C.DB.bindpad.mainVersions[C.myclass] = targetVer
+            BP:SyncBinds()
+            self:RefreshContent()
+            C:Debug(self, string.format("Master version updated to (v%d -> v%d).", myCurrentVer, targetVer))
+        end)
+        actionRow:AddChild(btn)
     end
 
     -- Button: Mark as Synced (Only if mismatch)
@@ -264,7 +276,7 @@ function Panel:UpdateBindPad(container)
         end)
         actionRow:AddChild(syncVerBtn)
     end
-    
+
     -- Toggle: Ignore This Character
     local ignoreChk = AceGUI:Create("CheckBox")
     ignoreChk:SetLabel("Ignore this Char")
@@ -344,12 +356,12 @@ function Panel:UpdateBindPad(container)
 end
 --#endregion
 
---- WEEKLY VAULT TAB
+--#region MARK:  WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
     local charKey = C.mynameRealm
     local catOrder = {"Raid", "Dungeon", "World"}
     local thresholds = { ["Raid"] = {2, 4, 6}, ["Dungeon"] = {1, 4, 8}, ["World"] = {2, 4, 8} }
-    
+
     if not C.DB.vault then return end
 
     -- 1. FIX: Gather and Filter Active Alts (Reward OR Slot 1 met)
@@ -378,7 +390,7 @@ function Panel:UpdateVault(container)
         local data = C.DB.vault[name]
         if data or name == charKey then
             local isCurrent = (name == charKey)
-            
+
             -- CARD: High-Density Container
             local card = AceGUI:Create("InlineGroup")
             local title = isCurrent and ("|cff00ff00" .. name .. "|r") or name
@@ -395,12 +407,12 @@ function Panel:UpdateVault(container)
             for _, catName in ipairs(catOrder) do
                 local charCat = cats[catName] or {}
                 local t = thresholds[catName]
-                
+
                 -- 1. Calculate Unlocked Count once per category row
                 local unlockedCount = 0
                 local maxP = 0
-                for _, s in ipairs(charCat) do 
-                    maxP = math.max(maxP, s.progress or 0) 
+                for _, s in ipairs(charCat) do
+                    maxP = math.max(maxP, s.progress or 0)
                 end
                 -- Correctly determine how many thresholds were hit
                 for i=1, 3 do if maxP >= t[i] then unlockedCount = i end end
@@ -414,8 +426,8 @@ function Panel:UpdateVault(container)
                     -- 2. Build the Bar String once
                     local bar = ""
                     for i=1, 3 do
-                        local tex = (unlockedCount >= i) 
-                            and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14:0:0|t" 
+                        local tex = (unlockedCount >= i)
+                            and "|TInterface\\RaidFrame\\ReadyCheck-Ready:14:14:0:0|t"
                             or  "|TInterface\\RaidFrame\\ReadyCheck-NotReady:14:14:0:0|t"
                         bar = bar .. tex
                     end
@@ -458,6 +470,7 @@ function Panel:UpdateVault(container)
         end
     end
 end
+--#endregion
 
 --- ELVUI PROFILE TAB
 function Panel:UpdateElvProfile(container)
@@ -481,7 +494,7 @@ function Panel:UpdateElvProfile(container)
         -- 2. Status (Right side)
         local statusText = "|cff00aaff" .. tostring(status or "Pending") .. "|r"
         if status == "midnight" then statusText = "|cff00ff00midnight|r" end
-        
+
         local statusLabel = AceGUI:Create("Label")
         statusLabel:SetText(statusText)
         statusLabel:SetWidth(120)
@@ -510,8 +523,8 @@ function Panel:UpdateElvProfile(container)
         -- Correctly gathering keys from the ELVUI table, not the vault
         local names = {}
         for name in pairs(C.DB.elvui) do
-            if name ~= currentName then 
-                table.insert(names, name) 
+            if name ~= currentName then
+                table.insert(names, name)
             end
         end
         table.sort(names)

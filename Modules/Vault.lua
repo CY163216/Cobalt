@@ -14,7 +14,7 @@ function WV:Check()
     if not charKey then return end
 
     -- Get current week's ID to identify stale progress
-    local currentWeek = C_DateAndTime.GetSecondsUntilWeeklyReset() 
+    local currentWeek = C_DateAndTime.GetSecondsUntilWeeklyReset()
     local hasUncollected = C_WeeklyRewards.HasAvailableRewards()
 
     local charData = {
@@ -22,7 +22,7 @@ function WV:Check()
         hasReward = hasUncollected,
         categories = {}
     }
-    
+
     local totalProgress = 0
     for categoryID, categoryName in pairs(CATEGORIES) do
         local activities = C_WeeklyRewards.GetActivities(categoryID)
@@ -55,7 +55,7 @@ function WV:ClearStaleProgress()
         if (data.lastUpdate or 0) < lastReset then
             if data.hasReward then
                 -- Keep the entry, but clear the progress bars
-                data.categories = {} 
+                data.categories = {}
                 C:Debug(self, charKey .. " has old rewards; hiding progress but keeping alert.")
             else
                 -- No reward and old data? Wipe it.
