@@ -13,24 +13,44 @@ function WV:Check(event, ...)
     local charKey = C.mynameRealm
     if not charKey then return end
 
-    -- Retry on login if rewards are false, C:Debug(self, "Data not ready, retrying in 5s...")
-    if not C_WeeklyRewards.HasAvailableRewards() and event == "ONENABLE" then
+    -- 1. Calculate Reset Timestamps
+    local now = time()
+    local secondsToReset = C_DateAndTime.GetSecondsUntilWeeklyReset()
+    local nextReset = now + secondsToReset
+    local thisWeekStart = nextReset - (7 * 24 * 60 * 60)
+
+    local hasUncollected = C_WeeklyRewards.HasAvailableRewards()
+
+    -- 2. Retry Logic: Check for nil/loading state specifically
+    if not hasUncollected and event == "ONENABLE" then
+        -- C:Debug(self, "Data not ready, retrying in 5s...")
         C_Timer.After(5, function() self:Check("RETRY_TIMER") end)
         return
     end
 
-    -- Log which event triggered this check
-    -- local trigger = event or "MANUAL_CALL"
-    -- C:Debug(self, "Check triggered by: |cff00ccff" .. trigger .. "|r")
+    -- 3. Handle Archiving OLD Data to C.DB.vault[charKey].lastReset
+    local existingData = C.DB.vault[charKey]
+    local archivedReset = nil
 
-    -- Get current week's ID to identify stale progress
-    local currentWeek = C_DateAndTime.GetSecondsUntilWeeklyReset()
-    local hasUncollected = C_WeeklyRewards.HasAvailableRewards()
+    if existingData and existingData.lastUpdate and existingData.lastUpdate < thisWeekStart then
+        -- Preserve the old data into a local variable to re-insert it later
+        archivedReset = {
+            categories = existingData.categories,
+            lastUpdate = existingData.lastUpdate,
+            wasCollected = not hasUncollected
+        }
+        C:Debug(self, "Archiving previous week data for this character.")
+    elseif existingData and existingData.lastReset then
+        -- If current data isn't old, but we already have an archive, keep it!
+        archivedReset = existingData.lastReset
+    end
 
+    -- 4. Gather Current Week Data
     local charData = {
-        lastUpdate = time(),
-        hasReward = hasUncollected,
-        categories = {}
+        lastUpdate = now,
+        hasReward = hasUncollected or false,
+        categories = {},
+        lastReset = archivedReset -- Nested archive inside the character's entry
     }
 
     local totalProgress = 0
@@ -49,16 +69,26 @@ function WV:Check(event, ...)
         end
     end
 
-    -- LOGIC: Save if they have progress OR if they have a reward waiting
+    -- 5. Save Logic
     if totalProgress > 0 or hasUncollected then
         C.DB.vault[charKey] = charData
-        -- C:Debug(self, string.format("Save charData, totalProgress: %s - hasUncolledted: %s", tostring(totalProgress), tostring(hasUncollected)))
     else
-        C.DB.vault[charKey] = nil -- Truly empty
-        -- C:Debug(self, "charData = nil")
+        -- Only wipe if there's no archive to save either
+        if not archivedReset then
+            C.DB.vault[charKey] = nil
+        else
+            -- Keep the entry just for the archive
+            C.DB.vault[charKey] = { lastReset = archivedReset, lastUpdate = now }
+        end
     end
-    if hasUncollected and (event == "ONENABLE" or event == "RETRY_TIMER") then C:Debug(self, "Vault reward popup.") self:ShowVaultAlert() end
+
+    -- 6. UI Trigger
+    if hasUncollected and (event == "ONENABLE" or event == "RETRY_TIMER") then
+        C:Debug(self, "Vault reward popup.")
+        self:ShowVaultAlert()
+    end
 end
+
 
 -- ##DEBUG Not being used
 function WV:ClearStaleProgress()

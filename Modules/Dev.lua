@@ -115,6 +115,77 @@ function Dev:PrintVault()
     C:PrintTable(self, C.DB.vault)
 end
 
+function Dev:ForceOldVaultData()
+    -- Use C.mynameRealm directly as defined in your setup
+    local charKey = C.mynameRealm
+
+    if not C.DB.vault or not C.DB.vault[charKey] then
+        C:Print(self, "|cffff0000Error:|r No vault data found for |cff00ccff" .. tostring(charKey) .. "|r")
+        return
+    end
+
+    -- Calculate 8 days ago in seconds
+    local eightDaysAgo = time() - (8 * 24 * 60 * 60)
+
+    -- Override the timestamp in the current character's table
+    C.DB.vault[charKey].lastUpdate = eightDaysAgo
+
+    -- Optional: Clear any existing archive to ensure a fresh test of the 'move' logic
+    C.DB.vault[charKey].lastReset = nil
+
+    C:Print(self, "Success! |cff00ccff" .. charKey .. "|r lastUpdate set to 8 days ago.")
+    C:Print(self, "LastReset cleared for fresh testing.")
+end
+
+function Dev:CleanupOldData()
+    -- Remove the C.DB.vault.lastReset table since its no longer used
+    if C.DB and C.DB.vault and C.DB.vault.lastReset then
+        C.DB.vault.lastReset = nil
+        C:Print(self, "|cffff0000[Cleanup]|r Removed legacy global lastReset table.")
+    else
+        C:Debug(self, "No legacy lastReset table found to clean up.")
+    end
+
+    -- Remove the fake testing character
+    local charKey = "Fake - Test"
+    if C.DB.vault[charKey] then
+        C.DB.vault[charKey] = nil
+        C:Debug(self, "Removed |cffff0000" .. charKey .. "|r from database.")
+    else
+        C:PrinDebugt(self, "No fake character found to wipe.")
+    end
+end
+
+function Dev:CreateFakeCharacter()
+    local charKey = "Fake - Test"
+    local eightDaysAgo = time() - (8 * 24 * 60 * 60)
+
+    C.DB.vault[charKey] = {
+        lastUpdate = eightDaysAgo,
+        hasReward = false, -- Requirement: reward false for archive test
+        categories = {
+            ["Dungeon"] = {
+                { progress = 4, level = 10, threshold = 1 }, -- Hit!
+                { progress = 4, level = 10, threshold = 4 }, -- Hit!
+                { progress = 4, level = 10, threshold = 8 }, -- Miss
+            },
+            ["World"] = {
+                { progress = 5, level = 80, threshold = 2 }, -- Hit!
+                { progress = 5, level = 80, threshold = 4 }, -- Hit!
+                { progress = 5, level = 80, threshold = 8 }, -- Miss
+            },
+            ["Raid"] = {
+                { progress = 0, level = 0, threshold = 2 }, -- Miss
+                { progress = 0, level = 0, threshold = 4 }, -- Miss
+                { progress = 0, level = 0, threshold = 6 }, -- Miss
+            }
+        }
+    }
+
+    C:Print(self, "Created |cff00ccff" .. charKey .. "|r with 8-day-old progress.")
+end
+
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -129,6 +200,9 @@ Dev.COMMAND_MANIFEST = {
     { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" },
     { name = "resetbp", func = "ResetBindPadVersion", slash = "resetbp", desc = "Set BindPad version to v0"},
     { name = "vault", func = "PrintVault", slash = "vault", desc = "Print C.DB.vault table"},
+    { name = "oldvault", func = "ForceOldVaultData", slash = "oldvault", desc = "DEBUG: Set current vault DB.lastUpdate to a week ago."},
+    { name = "clean", func = "CleanupOldData", slash = "clean", desc = "Cleanup old database entries."},
+    { name = "fake", func = "CreateFakeCharacter", slash = "fake", desc = "Create fake vault character."},
 }
 
 function Dev:SlashHandler(input)
@@ -162,8 +236,8 @@ end
 -- OnEnable
 -- =====================================================
 function Dev:OnEnable()
-    C:RegisterChatCommand("cdev", function(input) 
-        Dev:SlashHandler(input) 
+    C:RegisterChatCommand("cdev", function(input)
+        Dev:SlashHandler(input)
     end)
 
     C:Debug(self, "Dev Module: /cdev registered via Manual Handler")

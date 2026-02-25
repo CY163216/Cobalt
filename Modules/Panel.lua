@@ -454,7 +454,7 @@ function Panel:UpdateVault(container)
 
                         local val = "|cff808080Locked|r"
                         if (maxP >= goal) then
-                            local lvl = (charCat[i] and charCat[i].level) or "??"
+                            local lvl = (slot and slot.level) or "??"
                             val = string.format("|cff00aaff%silvl|r", lvl)
                         elseif maxP > prev then
                             val = string.format("|cff00ff00%d/%d|r", maxP, goal)
