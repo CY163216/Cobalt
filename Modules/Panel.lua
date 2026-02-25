@@ -216,15 +216,16 @@ function Panel:UpdateBindPad(container)
     container:AddChild(statusGroup)
 
     -- 2. Character Details
-    local currentVer = (C.DB.bindpad.chars and C.DB.bindpad.chars[C.mynameRealm]) or 0
-    local masterVer  = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[C.myclass]) or 1
+    local myCurrentVer = (C.DB.bindpad.chars and C.DB.bindpad.chars[C.mynameRealm]) or 0
+    local targetVer  = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[C.myclass]) or 1
+
     local isMain = (C.mynameRealm == config.main)
     local statusText = isMain and "|cff00ff00Main|r" or "|cff00aaffAlt|r"
-    local verColor = (currentVer < masterVer) and "|cffff0000" or "|cff00ff00"
+    local verColor = (myCurrentVer < targetVer) and "|cffff0000" or "|cff00ff00"
 
     local info = AceGUI:Create("Label")
     info:SetText(string.format("Role: %s  |  Main: |cff00ff00%s|r  |  Version: %sv%d / v%d|r", 
-        statusText, config.main, verColor, currentVer, masterVer))
+        statusText, config.main, verColor, myCurrentVer, targetVer))
     info:SetFontObject(GameFontNormal)
     info:SetFullWidth(true)
     statusGroup:AddChild(info)
@@ -242,7 +243,7 @@ function Panel:UpdateBindPad(container)
         btn:SetWidth(140)
         btn:SetCallback("OnClick", function()
             if not C.DB.bindpad.chars then C.DB.bindpad.chars = {} end
-            C.DB.bindpad.chars[C.mynameRealm] = masterVer
+            C.DB.bindpad.chars[C.mynameRealm] = targetVer
             BP:SyncBinds()
             self:RefreshContent()
             C:Debug(self, "Manual sync triggered for " .. C.mynameRealm)
@@ -251,14 +252,14 @@ function Panel:UpdateBindPad(container)
     end
 
     -- Button: Mark as Synced (Only if mismatch)
-    if currentVer ~= masterVer then
+    if myCurrentVer ~= targetVer then
         local syncVerBtn = AceGUI:Create("Button")
         syncVerBtn:SetText("Mark as Synced")
         syncVerBtn:SetWidth(140)
         syncVerBtn:SetCallback("OnClick", function()
             if not C.DB.bindpad.chars then C.DB.bindpad.chars = {} end
-            C.DB.bindpad.chars[C.mynameRealm] = masterVer
-            C:Print(self, string.format("Version for %s updated to v%d.", C.mynameRealm, masterVer))
+            C.DB.bindpad.chars[C.mynameRealm] = targetVer
+            C:Print(self, string.format("Version for %s updated to v%d.", C.mynameRealm, targetVer))
             self:RefreshContent()
         end)
         actionRow:AddChild(syncVerBtn)

@@ -104,6 +104,13 @@ function Dev:SetupIgnoreBindPadDB()
     C:Print(self, "Initial BP ignore db setup.")
 end
 
+function Dev:ResetBindPadVersion()
+    local myCurrentVer = 0
+    local targetVer  = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[C.myclass]) or 1
+    C.DB.bindpad.chars[C.mynameRealm] = myCurrentVer
+    C:Print(self, string.format("Reset BindPad version to (v%d -> v%d).", myCurrentVer, targetVer))
+end
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -115,7 +122,8 @@ Dev.COMMAND_MANIFEST = {
     { name = "lovecheck", func = "CheckLoveHoliday", slash = "love", desc = "check if Love is in the Air is active"},
     { name = "migrate bp", func = "MigrateBindPadDB", slash = "bp" },
     { name = "new bp", func = "SetupNewBindPadDB", slash = "newbp" },
-    { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" }
+    { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" },
+    { name = "resetbp", func = "ResetBindPadVersion", slash = "resetbp", desc = "Set BindPad version to v0"},
 }
 
 function Dev:SlashHandler(input)

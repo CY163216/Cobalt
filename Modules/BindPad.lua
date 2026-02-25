@@ -21,8 +21,8 @@ function M:SyncBinds()
     end
 
     -- 1. Master Version Check: Get the target version from our new DB table
-    local targetVer = C.DB.bindpad.mainVersions[C.myclass] or 1
-    local myCurrentVer = C.DB.bindpad.chars[C.mynameRealm] or 0
+    local myCurrentVer = (C.DB.bindpad.chars and C.DB.bindpad.chars[C.mynameRealm]) or 0
+    local targetVer  = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[C.myclass]) or 1
     local ignore = C.DB.bindpad.ignore[C.mynameRealm] or false
 
     -- skip character is it's set to ignore
