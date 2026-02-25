@@ -9,9 +9,19 @@ local CATEGORIES = {
     [Enum.WeeklyRewardChestThresholdType.World]      = "World",   -- 6
 }
 
-function WV:Check()
+function WV:Check(event, ...)
     local charKey = C.mynameRealm
     if not charKey then return end
+
+    -- Retry on login if rewards are false, C:Debug(self, "Data not ready, retrying in 5s...")
+    if not C_WeeklyRewards.HasAvailableRewards() and event == "ONENABLE" then
+        C_Timer.After(5, function() self:Check("RETRY_TIMER") end)
+        return
+    end
+
+    -- Log which event triggered this check
+    -- local trigger = event or "MANUAL_CALL"
+    -- C:Debug(self, "Check triggered by: |cff00ccff" .. trigger .. "|r")
 
     -- Get current week's ID to identify stale progress
     local currentWeek = C_DateAndTime.GetSecondsUntilWeeklyReset()
@@ -42,11 +52,15 @@ function WV:Check()
     -- LOGIC: Save if they have progress OR if they have a reward waiting
     if totalProgress > 0 or hasUncollected then
         C.DB.vault[charKey] = charData
+        -- C:Debug(self, string.format("Save charData, totalProgress: %s - hasUncolledted: %s", tostring(totalProgress), tostring(hasUncollected)))
     else
         C.DB.vault[charKey] = nil -- Truly empty
+        -- C:Debug(self, "charData = nil")
     end
+    if hasUncollected and (event == "ONENABLE" or event == "RETRY_TIMER") then C:Debug(self, "Vault reward popup.") self:ShowVaultAlert() end
 end
 
+-- ##DEBUG Not being used
 function WV:ClearStaleProgress()
     local lastReset = self:GetLastResetTime() -- Function from previous step
 
@@ -93,13 +107,5 @@ function WV:OnEnable()
     self:RegisterEvent("CHALLENGE_MODE_COMPLETED", "Check")
     self:RegisterEvent("BOSS_KILL", "Check")
 
-    self:Check()
-
-    -- LOGIN CHECK: Only trigger if rewards are waiting to be claimed
-    if C_WeeklyRewards.HasAvailableRewards() then
-        -- Small delay to ensure the UI is fully loaded before popping the window
-        C_Timer.After(5, function()
-            self:ShowVaultAlert()
-        end)
-    end
+    self:Check("ONENABLE")
 end

@@ -404,7 +404,8 @@ function Panel:UpdateVault(container)
 
             -- --- CONTENT: PROGRESS DASHBOARD ---
             local cats = data and data.categories or {}
-            for _, catName in ipairs(catOrder) do
+            local unlockedCountTotal = 0
+            for catNum, catName in ipairs(catOrder) do
                 local charCat = cats[catName] or {}
                 local t = thresholds[catName]
 
@@ -415,7 +416,12 @@ function Panel:UpdateVault(container)
                     maxP = math.max(maxP, s.progress or 0)
                 end
                 -- Correctly determine how many thresholds were hit
-                for i=1, 3 do if maxP >= t[i] then unlockedCount = i end end
+                for i=1, 3 do
+                    if maxP >= t[i] then
+                        unlockedCount = i
+                        unlockedCountTotal = unlockedCountTotal + 1
+                    end
+                end
 
                 if isCurrent or unlockedCount > 0 then
                     local row = AceGUI:Create("SimpleGroup")
@@ -459,6 +465,19 @@ function Panel:UpdateVault(container)
                         cell:SetText(val)
                         row:AddChild(cell)
                     end
+                end
+
+                -- Display simple text when there is no progress but there is a vault reward
+                if catNum == 3 and (not isCurrent and unlockedCountTotal == 0 and data.hasReward) then
+                    local row = AceGUI:Create("SimpleGroup")
+                    row:SetFullWidth(true)
+                    row:SetLayout("Flow")
+                    card:AddChild(row)
+
+                    local catLabel = AceGUI:Create("Label")
+                    catLabel:SetText("Visit vault!")
+                    catLabel:SetWidth(160) -- Use a fixed pixel width instead of relative
+                    row:AddChild(catLabel)
                 end
             end
 

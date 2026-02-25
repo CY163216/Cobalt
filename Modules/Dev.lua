@@ -111,6 +111,10 @@ function Dev:ResetBindPadVersion()
     C:Print(self, string.format("Reset BindPad version to (v%d -> v%d).", myCurrentVer, targetVer))
 end
 
+function Dev:PrintVault()
+    C:PrintTable(self, C.DB.vault)
+end
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -124,6 +128,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "new bp", func = "SetupNewBindPadDB", slash = "newbp" },
     { name = "ignore bp", func = "SetupIgnoreBindPadDB", slash = "ignorebp" },
     { name = "resetbp", func = "ResetBindPadVersion", slash = "resetbp", desc = "Set BindPad version to v0"},
+    { name = "vault", func = "PrintVault", slash = "vault", desc = "Print C.DB.vault table"},
 }
 
 function Dev:SlashHandler(input)

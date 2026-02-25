@@ -473,8 +473,8 @@ function C:Debug(module, ...)
     local name = (type(module) == "table" and module.GetName) and module:GetName() or tostring(module or "CX")
     local msg = ...
 
-    if C.DB.dev.showModuleStatus == false and (msg == C.MODULE_ENABLED or msg == C.MODULE_DISABLED) then 
-        return 
+    if C.DB.dev.showModuleStatus == false and (msg == C.MODULE_ENABLED or msg == C.MODULE_DISABLED) then
+        return
     end
 
     local filter = C.DB.dev.moduleFilter
@@ -483,6 +483,74 @@ function C:Debug(module, ...)
         Log("|cffFF79AC[Cobalt]|r", "00FF00", module, ...)
     end
 end
+
+--- Highly robust table printer for WoW 12.0.1
+-- @param module The module instance (self) to pass to C:Print
+-- @param tbl The table to inspect
+-- @param label (Optional) A string to identify this print job
+function C:PrintTable(module, tbl, label)
+    local header = label and ("[" .. label .. "] ") or ""
+
+    -- 1. Handle nil input
+    if tbl == nil then
+        C:Print(module, header .. "|cffff0000Error: Input is nil|r")
+        return
+    end
+
+    -- 2. Handle non-table input (Strings, Numbers, Booleans, etc.)
+    if type(tbl) ~= "table" then
+        C:Print(module, header .. "Value: " .. tostring(tbl) .. " (|cff808080Type: " .. type(tbl) .. "|r)")
+        return
+    end
+
+    -- 3. Handle empty table
+    if next(tbl) == nil then
+        C:Print(module, header .. "{ } |cff808080(Empty Table)|r")
+        return
+    end
+
+    -- 4. Internal Recursive Processor
+    local function dump(t, indent, visited)
+        visited = visited or {}
+        indent = indent or ""
+
+        -- Prevent infinite recursion (Circular References)
+        if visited[t] then
+            C:Print(module, indent .. "|cff808080[Circular Reference detected]|r")
+            return
+        end
+        visited[t] = true
+
+        for k, v in pairs(t) do
+            local keyStr = "|cff00ccff" .. tostring(k) .. "|r"
+
+            if type(v) == "table" then
+                C:Print(module, indent .. keyStr .. " = {")
+                dump(v, indent .. "  ", visited)
+                C:Print(module, indent .. "}")
+            else
+                local valStr = tostring(v)
+                -- Apply syntax highlighting based on data type
+                if type(v) == "string" then
+                    valStr = "|cffce9178'" .. valStr .. "'|r"
+                elseif type(v) == "number" then
+                    valStr = "|cffb5cea8" .. valStr .. "|r"
+                elseif type(v) == "boolean" then
+                    valStr = "|cff569cd6" .. valStr .. "|r"
+                end
+
+                C:Print(module, indent .. keyStr .. " = " .. valStr)
+            end
+        end
+    end
+
+    -- Initial trigger
+    C:Print(module, header .. "Dumping Table Contents:")
+    dump(tbl, "  ")
+end
+
+
+
 
 -- Utility function: returns true if the holiday name is found for today
 function C:IsHolidayActive(holidayName)
