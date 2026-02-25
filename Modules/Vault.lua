@@ -1,6 +1,5 @@
 local C = select(2, ...)
 local WV = C:GetModule('Vault')
-local AceGUI = C.Libs.AceGUI
 
 -- Updated Constants for TWW Vault Categories
 local CATEGORIES = {
@@ -106,14 +105,14 @@ function WV:GetActiveVaultAlts()
         if name ~= charKey then
             local isStale = data.lastUpdate and data.lastUpdate < thisWeekStart
             local isActive = data.hasReward or isStale
-            
+
             -- Only check categories if not already flagged active
             if not isActive and data.categories then
                 for catName, slots in pairs(data.categories) do
                     local t = WV.THRESHOLDS[catName]
                     local maxP = 0
-                    for i=1, #slots do 
-                        if (slots[i].progress or 0) > maxP then maxP = slots[i].progress end 
+                    for i=1, #slots do
+                        if (slots[i].progress or 0) > maxP then maxP = slots[i].progress end
                     end
                     if t and maxP >= t[1] then isActive = true; break end
                 end
@@ -121,10 +120,10 @@ function WV:GetActiveVaultAlts()
             if isActive then others[#others + 1] = name end
         end
     end
-    
+
     table.sort(others)
     for i=1, #others do sortedNames[#sortedNames + 1] = others[i] end
-    
+
     return sortedNames, thisWeekStart
 end
 

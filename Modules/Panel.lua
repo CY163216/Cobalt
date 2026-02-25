@@ -357,7 +357,6 @@ end
 
 --#region MARK:  WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
-    local WV = C:GetModule("Vault") -- Get the module reference
     local charKey = C.mynameRealm
     
     -- 1. Get processed data from the Vault module
