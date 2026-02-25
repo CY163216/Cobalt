@@ -67,7 +67,7 @@ end
 
 -- 1. Define the dialog (Do this once, outside the function)
 StaticPopupDialogs["WV_VAULT_ALERT"] = {
-    text = "|cff00ff00You have rewards waiting|r\n   in the Great Vault!",
+    text = "|cff00ff00You have rewards waiting!\n",
     button1 = "Understood",
     OnAccept = function()
         -- Logic for when they click "Understood"
