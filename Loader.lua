@@ -447,9 +447,10 @@ C.ROSTER = {
 C.TRACKED_QUESTS = {
     -- Case 1: Universal ID (Same for everyone)
     -- { name = "Special Assignment", id = 82689 },
+    { name = "Crafter's Needed", id = 93723 },
 
     -- Case 2: Faction-Specific, NOT a holiday (e.g. Intro quests)
-    -- { name = "Faction Intro", horde = 12345, alliance = 67890 }, 
+    -- { name = "Faction Intro", horde = 12345, alliance = 67890 },
 
     -- Case 3: Faction-Specific AND a holiday
     { name = "Love is in the Air", horde = 78985, alliance = 78379, isHoliday = true },
