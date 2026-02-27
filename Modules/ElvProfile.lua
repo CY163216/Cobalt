@@ -3,6 +3,7 @@ local M = C:GetModule("ElvProfile")
 
 -- Constants
 local TARGET_PROFILE = "midnight"
+local TARGET_PROFILE_PRIVATE = "midnight"
 
 StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
     text = "|cff00aaffCobalt:|r ElvUI profiles updated to '|cff00ff00" .. TARGET_PROFILE .. "|r'. Reload required.",
@@ -14,7 +15,8 @@ StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
 
 -- Check if this character is already flagged with ANY status
 function M:GetProfileStatus()
-    return C.DB.elvui and C.DB.elvui[C.mynameRealm]
+    return false
+    -- return C.DB.elvui and C.DB.elvui[C.mynameRealm]
 end
 
 -- Save specific status (e.g., true, "banker", "manual", or specific Profile Name)
@@ -38,31 +40,36 @@ function M:CheckAndSetProfiles()
     local privateMatch = false
     local customGlobalName = nil
 
+    local isMain = C.ROSTER[C.mynameRealm].roles.main
+    if not isMain then TARGET_PROFILE = "banker" C:Print(self, string.format("Alt character detected. Switching to |cff00ff00%s|r", TARGET_PROFILE)) end
+
     -- 1. Check Global Profile
     if ElvDB.profileKeys then
         local currentGlobal = ElvDB.profileKeys[C.mynameRealm]
         if currentGlobal == TARGET_PROFILE then
+            C:Debug(self, string.format("Profile match: %s. No action required.", currentGlobal))
             globalMatch = true
-        elseif currentGlobal == "Default" then
-            C:Print(self, string.format("Default Global Profile detected. Switching to |cff00ff00%s|r", TARGET_PROFILE))
+        elseif (currentGlobal == "Default") or (not isMain and (currentGlobal == "midnight")) then
+            local reason = (currentGlobal == "Default") and "Default Profile" or "Non-Main on Midnight"
+            C:Print(self, string.format("[%s] detected. Switching to |cff00ff00%s|r", reason, TARGET_PROFILE))
             ElvDB.profileKeys[C.mynameRealm] = TARGET_PROFILE
             needsReload = true
         else
             C:Debug(self, "Global Profile is [|cff00ff00" .. currentGlobal .. "|r]. Skipping Global update.")
             -- Capture the custom profile name to use as the status
             customGlobalName = currentGlobal
-            globalMatch = true 
+            globalMatch = true
         end
     end
 
     -- 2. Check Private Profile
     if ElvPrivateDB.profileKeys then
         local currentPrivate = ElvPrivateDB.profileKeys[C.mynameRealm]
-        if currentPrivate == TARGET_PROFILE then
+        if currentPrivate == TARGET_PROFILE_PRIVATE then
             privateMatch = true
         else
             C:Print(self, string.format("Private Profile mismatch: |cffff0000%s|r", currentPrivate or "None"))
-            ElvPrivateDB.profileKeys[C.mynameRealm] = TARGET_PROFILE
+            ElvPrivateDB.profileKeys[C.mynameRealm] = TARGET_PROFILE_PRIVATE
             needsReload = true
         end
     end
@@ -83,7 +90,7 @@ function M:OnEnable()
     if not C_AddOns.IsAddOnLoaded("ElvUI") then
         C:Debug(self, "ElvUI is not enabled or loaded. Skipping profile check.")
         return
-    end    
+    end
     local currentStatus = self:GetProfileStatus()
 
     if currentStatus then

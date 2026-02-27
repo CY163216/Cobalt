@@ -358,7 +358,7 @@ end
 --#region MARK:  WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
     local charKey = C.mynameRealm
-    
+
     -- 1. Get processed data from the Vault module
     local sortedNames, thisWeekStart = WV:GetActiveVaultAlts()
 
@@ -368,26 +368,26 @@ function Panel:UpdateVault(container)
         if data or name == charKey then
             local isCurrent = (name == charKey)
             local isStale = data and data.lastUpdate and data.lastUpdate < thisWeekStart
-            
+
             -- CARD: AceGUI Setup
             local card = AceGUI:Create("InlineGroup")
             local displayName = isCurrent and ("|cff00ff00" .. name .. "|r") or NORMAL_FONT_COLOR:WrapTextInColorCode(name)
-            
+
             if data and (data.hasReward or isStale) then
                 displayName = displayName .. "  |TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:14:14:0:0|t |cff00ff00(REWARD!)|r"
             end
-            
+
             card:SetTitle(displayName)
             card:SetFullWidth(true)
             card:SetLayout("Flow")
             container:AddChild(card)
 
             local cats = data and data.categories or {}
-            
+
             for _, catName in ipairs(WV.CAT_ORDER) do
                 local charCat = cats[catName] or {}
                 local t = WV.THRESHOLDS[catName]
-                
+
                 local maxP = 0
                 for i=1, #charCat do maxP = math.max(maxP, charCat[i].progress or 0) end
 
@@ -797,7 +797,7 @@ function Panel:Create()
     f:SetScript("OnSizeChanged", function(_, w, h) UpdateLayout(w, h) end)
 
     UpdateLayout(UI_CONFIG.WIDTH, UI_CONFIG.HEIGHT)
-    self.selectedTab = "Vault"
+    self.selectedTab = C.DB.panel.selectedTab or "Vault"
     self:RefreshContent()
 end
 
@@ -820,6 +820,8 @@ end
 
 function Panel:OnInitialize()
     C:Debug(self, C.MODULE_ENABLED)
+
+    C.DB.panel = C.DB.panel or { selectedTab = "Quests" }
     self:Create()
 
     -- Ensure it's hidden on login
