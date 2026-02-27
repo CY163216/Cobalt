@@ -15,8 +15,15 @@ StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
 
 -- Check if this character is already flagged with ANY status
 function M:GetProfileStatus()
+    local val = C.DB.elvui[C.mynameRealm]
+
+    -- Check if it's a string and NOT the literal "true"
+    if type(val) == "string" and val ~= "true" then
+        return val
+    end
+
+    -- Fallback for booleans, nil, or the string "true"
     return false
-    -- return C.DB.elvui and C.DB.elvui[C.mynameRealm]
 end
 
 -- Save specific status (e.g., true, "banker", "manual", or specific Profile Name)
