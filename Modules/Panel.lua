@@ -622,36 +622,31 @@ function Panel:UpdateDev(container)
 end
 --#endregion
 
---#region MARK: QUEST TRACKER TAB
+--#region MARK: QUEST TRACKER TAB (CLEAN MULTI-COLUMN)
 function Panel:UpdateQuests(container)
     local allQuestData = C.DB.quests or {}
     local currentCharacter = C.mynameRealm
 
-    -- Helper to create a two-column row matching the ElvUI style
-    local function AddQuestRow(parent, name, isDone, isHoliday)
-        -- Skip holiday quests that are not activce
-        if isHoliday and not C:IsHolidayActive(name) then return end
+    -- Helper for standard full-width rows (Current Character Section)
+    local function AddFullRow(parent, label, statusText)
         local row = AceGUI:Create("SimpleGroup")
         row:SetFullWidth(true)
         row:SetLayout("Flow")
         parent:AddChild(row)
 
-        -- Quest Name Label (Left)
         local nameLabel = AceGUI:Create("Label")
-        nameLabel:SetText(name) -- No color formatting
+        nameLabel:SetText(label)
         nameLabel:SetRelativeWidth(0.6)
         row:AddChild(nameLabel)
 
-        -- Status Label (Right-Aligned)
         local statusLabel = AceGUI:Create("Label")
-        -- Status colors are kept (Green/Red) for functional readability
-        statusLabel:SetText(isDone and "|cff00ff00Done|r" or "|cffff0000Pending|r")
+        statusLabel:SetText(statusText)
         statusLabel:SetRelativeWidth(0.4)
         statusLabel:SetJustifyH("RIGHT")
         row:AddChild(statusLabel)
     end
 
-    -- 1. Current Character Section
+    -- 1. Current Character (Header and Full-Width rows)
     local topHeader = AceGUI:Create("Heading")
     topHeader:SetText(currentCharacter)
     topHeader:SetFullWidth(true)
@@ -659,52 +654,69 @@ function Panel:UpdateQuests(container)
 
     local currentData = allQuestData[currentCharacter] or {}
     for _, q in ipairs(C.TRACKED_QUESTS) do
-        AddQuestRow(container, q.name, currentData[q.name], q.isHoliday)
-    end
-    if not next(currentData) then
-        local emptyLabel = AceGUI:Create("Label")
-        emptyLabel:SetText("  No quest data.")
-        emptyLabel:SetFullWidth(true)
-        emptyLabel:SetFontObject(GameFontNormal)
-        container:AddChild(emptyLabel)
+        if not q.isHoliday or C:IsHolidayActive(q.name) then
+            local statusText = currentData[q.name] and "|cff00ff00Done|r" or "|cffff0000Pending|r"
+            AddFullRow(container, q.name, statusText)
+        end
     end
 
-    -- Sort other characters alphabetically
-    local otherChars = {}
-    for name, quests in pairs(allQuestData) do
-        if name ~= currentCharacter and next(quests) then table.insert(otherChars, name) end
-    end
-    table.sort(otherChars)
+    -- 2. Alts (Clean 3-Column Layout)
+    local otherHeader = AceGUI:Create("Heading")
+    otherHeader:SetText("Alt Progress")
+    otherHeader:SetFullWidth(true)
+    container:AddChild(otherHeader)
 
-    if otherChars and next(otherChars) then
-        -- 2. Other Characters Section
-        local otherHeader = AceGUI:Create("Heading")
-        otherHeader:SetText("Other Characters")
-        otherHeader:SetFullWidth(true)
-        container:AddChild(otherHeader)
+    for _, q in ipairs(C.TRACKED_QUESTS) do
+        if not q.isHoliday or C:IsHolidayActive(q.name) then
+            -- Quest Title
+            local qTitle = AceGUI:Create("Label")
+            qTitle:SetText(NORMAL_FONT_COLOR:WrapTextInColorCode(q.name))
+            qTitle:SetFullWidth(true)
+            qTitle:SetFontObject(GameFontNormalLarge)
+            container:AddChild(qTitle)
 
+            -- Layout Group for columns
+            local altGroup = AceGUI:Create("SimpleGroup")
+            altGroup:SetFullWidth(true)
+            altGroup:SetLayout("Flow")
+            container:AddChild(altGroup)
 
-
-        for _, name in ipairs(otherChars) do
-            local shortName = name:match("^([^-]+)") or name
-
-            local charData = allQuestData[name] or {}
-            if charData and next(charData) then
-                -- Character Identifier Label (No formatting)
-                local charLabel = AceGUI:Create("Label")
-                -- charLabel:SetText("|cff00AAFF" .. shortName .. "|r")
-                charLabel:SetText(NORMAL_FONT_COLOR:WrapTextInColorCode(shortName))
-                charLabel:SetFullWidth(true)
-                container:AddChild(charLabel)
-
-                for _, q in ipairs(C.TRACKED_QUESTS) do
-                    AddQuestRow(container, "  " .. q.name, charData[q.name], q.isHoliday)
+            -- Collect and sort alts: Pending first, then Alphabetical
+            local alts = {}
+            for charName, charQuests in pairs(allQuestData) do
+                if charName ~= currentCharacter then
+                    table.insert(alts, {
+                        name = charName:match("^([^-]+)") or charName,
+                        isDone = charQuests[q.name] or false
+                    })
                 end
             end
+            table.sort(alts, function(a, b)
+                if a.isDone ~= b.isDone then return not a.isDone end
+                return a.name < b.name
+            end)
+
+            -- Add alts as 1/3rd width labels (Color-only status)
+            for _, alt in ipairs(alts) do
+                local charEntry = AceGUI:Create("Label")
+                -- White for Pending, Dark Grey for Done
+                local colorCode = alt.isDone and "|cff666666" or "|cffffffff"
+
+                charEntry:SetText(colorCode .. alt.name .. "|r")
+                charEntry:SetRelativeWidth(0.33)
+                altGroup:AddChild(charEntry)
+            end
+
+            -- Small spacer between quest categories
+            local spacer = AceGUI:Create("Label")
+            spacer:SetText(" ")
+            spacer:SetFullWidth(true)
+            container:AddChild(spacer)
         end
     end
 end
 --#endregion
+
 
 --#region MARK: GENERAL TAB
 function Panel:UpdateGeneral(container)
