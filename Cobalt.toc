@@ -6,7 +6,7 @@
 ## Category: User Interface
 ## SavedVariables: CobaltDB
 ## OptionalDeps: BindPad, ElvUI, AddMedia, Syndicator
-## IconTexture: Interface\Icons\inv_12_profession_thematicfoozles_moteofpurevoid_blue
+## IconTexture: Interface\Icons\inv_cosmicvoid_orb
 
 embeds.xml
 !load_mainline.xml

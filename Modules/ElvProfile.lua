@@ -16,9 +16,10 @@ StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
 -- Check if this character is already flagged with ANY status
 function M:GetProfileStatus()
     local val = C.DB.elvui[C.mynameRealm]
+    local isMain = C.ROSTER[C.mynameRealm].roles.main
 
     -- Check if it's a string and NOT the literal "true"
-    if type(val) == "string" and val ~= "true" then
+    if type(val) == "string" and val ~= "true" and isMain then
         return val
     end
 

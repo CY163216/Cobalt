@@ -8,7 +8,7 @@ function M:OnInitialize()
     self.obj = LDB:NewDataObject("Cobalt", {
         type = "launcher",
         text = "Cobalt",
-        icon = "Interface\\Icons\\inv_12_profession_thematicfoozles_moteofpurevoid_blue",
+        icon = "Interface\\Icons\\inv_cosmicvoid_orb",
 
         OnClick = function(_, button)
             if button == "LeftButton" then
@@ -58,8 +58,8 @@ function M:OnEnable()
 
     LDBI:Refresh("Cobalt", C.DB.minimap)
 
-    C:RegisterChatCommand("cobalt", function(input) 
-        self:HandleCommand(input) 
+    C:RegisterChatCommand("cobalt", function(input)
+        self:HandleCommand(input)
     end)
 end
 
