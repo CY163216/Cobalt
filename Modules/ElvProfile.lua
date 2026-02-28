@@ -16,10 +16,11 @@ StaticPopupDialogs["COBALT_RELOAD_REQUIRED"] = {
 -- Check if this character is already flagged with ANY status
 function M:GetProfileStatus()
     local val = C.DB.elvui[C.mynameRealm]
+    local roleMatch = C.ROSTER[C.mynameRealm].roles[val]
     local isMain = C.ROSTER[C.mynameRealm].roles.main
 
     -- Check if it's a string and NOT the literal "true"
-    if type(val) == "string" and val ~= "true" and isMain then
+    if (type(val) == "string" and val ~= "true" and isMain) or (type(val) == "string" and roleMatch) then
         return val
     end
 
@@ -101,8 +102,11 @@ function M:OnEnable()
     end
     local currentStatus = self:GetProfileStatus()
 
-    if currentStatus then
-        C:Debug(self, "Skipping: Status is already [|cff00ff00" .. tostring(currentStatus) .. "|r]")
+    if currentStatus == "main" then
+        C:Debug(self, "Skipping: Main character [|cff00ff00" .. tostring(currentStatus) .. "|r]")
+        return
+    elseif currentStatus then
+        C:Debug(self, "Skipping: ROSTER matches profile [|cff00ff00" .. tostring(currentStatus) .. "|r]")
         return
     end
 
