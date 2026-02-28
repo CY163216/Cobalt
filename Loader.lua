@@ -550,9 +550,6 @@ function C:PrintTable(module, tbl, label)
     dump(tbl, "  ")
 end
 
-
-
-
 -- Utility function: returns true if the holiday name is found for today
 function C:IsHolidayActive(holidayName)
     local day = tonumber(date("%d")) or 0
@@ -572,6 +569,23 @@ end
 function C:HasRole(charKey, roleName)
     local char = self.ROSTER[charKey]
     return char and char.roles and char.roles[roleName] or false
+end
+
+function C:SetModuleState(moduleName, state)
+    local module = self:GetModule(moduleName)
+
+    -- 1. Update the Module State
+    if state then
+        module:Enable()
+    else
+        module:Disable()
+    end
+
+    -- 2. Update the Database (so it persists across reloads)
+    -- Your Init.lua uses self.database.profile.modules
+    self.database.profile.modules[moduleName] = state
+
+    C:Print(self, string.format("Cobalt: %s is now %s", moduleName, state and "|cff00ff00On|r" or "|cffff0000Off|r"))
 end
 
 function C:SlashHandler(input)

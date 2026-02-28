@@ -44,12 +44,30 @@ function WM:Update()
     else
         UIFrameFadeOut(self.frame, FADE_TIME, self.frame:GetAlpha(), 0)
         -- Hide frame after fade to prevent it blocking clicks
-        C_Timer.After(FADE_TIME, function() 
-            if not C_PvP.IsWarModeDesired() or not IsResting() then 
-                self.frame:Hide() 
-            end 
+        C_Timer.After(FADE_TIME, function()
+            if not C_PvP.IsWarModeDesired() or not IsResting() then
+                self.frame:Hide()
+            end
         end)
     end
+end
+
+function WM:OnInitialize()
+    self:CreateFrame()
+
+    self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnEvent")
+    self:RegisterEvent("PLAYER_UPDATE_RESTING", "OnEvent")
+    self:RegisterEvent("WAR_MODE_STATUS_UPDATE", "OnEvent")
+    self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "OnEvent")
+    self:RegisterEvent("ZONE_CHANGED", "OnEvent")
+    self:RegisterEvent("PLAYER_FLAGS_CHANGED", "OnEvent")
+end
+
+function WM:OnDisable()
+    -- Ace3 automatically unregisters events/hooks registered via Ace3 mixins
+    -- But you can add manual cleanup here if needed
+    self.frame:Hide()
+    C:Debug(self, C.MODULE_DISABLED)
 end
 
 function WM:OnEvent(event)
@@ -59,15 +77,6 @@ end
 
 function WM:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
-
-    self:CreateFrame()
-
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnEvent")
-    self:RegisterEvent("PLAYER_UPDATE_RESTING", "OnEvent")
-    self:RegisterEvent("WAR_MODE_STATUS_UPDATE", "OnEvent")
-    self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "OnEvent")
-    self:RegisterEvent("ZONE_CHANGED", "OnEvent")
-    self:RegisterEvent("PLAYER_FLAGS_CHANGED", "OnEvent")
 
     self:Update()
 end

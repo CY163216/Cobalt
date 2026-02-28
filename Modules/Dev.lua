@@ -1,5 +1,6 @@
 local C = select(2, ...)
 local Dev = C:GetModule("Dev")
+local WM = C:GetModule("Warmode")
 
 ----------------------------------------------------
 --- DEV FUNCTIONS
@@ -185,6 +186,13 @@ function Dev:CreateFakeCharacter()
     C:Print(self, "Created |cff00ccff" .. charKey .. "|r with 8-day-old progress.")
 end
 
+function Dev:ToggleWarmodeModule()
+    -- Flip the current state
+    local newState = not WM:IsEnabled()
+
+    -- Call the core setter
+    C:SetModuleState("Warmode", newState)
+end
 
 -- =====================================================
 -- Dev MANIFEST
@@ -203,6 +211,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "oldvault", func = "ForceOldVaultData", slash = "oldvault", desc = "DEBUG: Set current vault DB.lastUpdate to a week ago."},
     { name = "clean", func = "CleanupOldData", slash = "clean", desc = "Cleanup old database entries."},
     { name = "fake", func = "CreateFakeCharacter", slash = "fake", desc = "Create fake vault character."},
+    { name = "wm", func = "ToggleWarmodeModule", slash = "wm", desc = "Toggle warmode module."},
 }
 
 function Dev:SlashHandler(input)

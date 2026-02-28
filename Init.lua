@@ -6,7 +6,7 @@ local CallbackHandler = _G.LibStub('CallbackHandler-1.0')
 local AddOnName, Engine = ...
 
 local C = AceAddon:NewAddon(Engine, AddOnName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0")
-C.DF = {profile = {}, global = {}}; C.privateVars = {profile = {}} -- Defaults
+C.DF = {profile = { modules = { ["Warmode"] = true }}, global = {}}; C.privateVars = {profile = {}} -- Defaults
 
 C.callbacks = C.callbacks or CallbackHandler:New(C)
 C.wowpatch, C.wowbuild, C.wowdate, C.wowtoc = GetBuildInfo()
@@ -49,6 +49,13 @@ function C:OnInitialize()
     local AceDB = C.Libs.AceDB
     self.database = AceDB:New("CobaltDB", self.DF, true)
     self.DB = self.database.global
+
+    -- Disabled all modules that are turned off, profile based
+    for name, module in self:IterateModules() do
+        if self.database.profile.modules[name] == false then
+            module:Disable()
+        end
+    end
 
     self:RegisterChatCommand("cobalt", "SlashHandler")
 end
