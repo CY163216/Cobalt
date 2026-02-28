@@ -355,7 +355,7 @@ function Panel:UpdateBindPad(container)
 end
 --#endregion
 
---#region MARK:  WEEKLY VAULT TAB
+--#region MARK: WEEKLY VAULT TAB
 function Panel:UpdateVault(container)
     local charKey = C.mynameRealm
 
@@ -447,7 +447,7 @@ end
 
 --#endregion
 
---- ELVUI PROFILE TAB
+--#region MARK: ELVUI PROFILE TAB
 function Panel:UpdateElvProfile(container)
     local currentName = C.mynameRealm
     local currentStatus = EP:GetProfileStatus()
@@ -518,8 +518,9 @@ function Panel:UpdateElvProfile(container)
         C:Debug(self, "C.DB.elvui is nil")
     end
 end
+--#endregion
 
---- DEV PROFILE TAB
+--#region MARK: DEV PROFILE TAB
 function Panel:UpdateDev(container)
     local dev = C.DB.dev
     if not dev then return end
@@ -619,8 +620,9 @@ function Panel:UpdateDev(container)
     reloadBtn:SetCallback("OnClick", function() ReloadUI() end)
     container:AddChild(reloadBtn)
 end
+--#endregion
 
---- QUEST TRACKER TAB
+--#region MARK: QUEST TRACKER TAB
 function Panel:UpdateQuests(container)
     local allQuestData = C.DB.quests or {}
     local currentCharacter = C.mynameRealm
@@ -702,8 +704,9 @@ function Panel:UpdateQuests(container)
         end
     end
 end
+--#endregion
 
---- GENERAL TAB
+--#region MARK: GENERAL TAB
 function Panel:UpdateGeneral(container)
     local header = AceGUI:Create("Heading")
     header:SetText("Cobalt Dashboard")
@@ -740,6 +743,7 @@ function Panel:UpdateGeneral(container)
     end)
     container:AddChild(debugButton)
 end
+--#endregion
 
 -- Main Frame Construction
 function Panel:Create()
