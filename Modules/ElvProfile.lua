@@ -18,10 +18,18 @@ function M:GetProfileStatus()
     local val = C.DB.elvui[C.mynameRealm]
     local roleMatch = C.ROSTER[C.mynameRealm].roles[val]
     local isMain = C.ROSTER[C.mynameRealm].roles.main
+    local roleMatchElvDB = false
+
+    if ElvDB.profileKeys then
+        local elvDBrole = ElvDB.profileKeys[C.mynameRealm]
+        if elvDBrole == val then
+            roleMatchElvDB = elvDBrole
+        end
+    end
 
     -- Check if it's a string and NOT the literal "true"
-    if (type(val) == "string" and val ~= "true" and isMain) or (type(val) == "string" and roleMatch) then
-        return val
+    if (type(val) == "string" and val ~= "true" and isMain) or (type(val) == "string" and roleMatch) or roleMatchElvDB then
+        return val, roleMatch, roleMatchElvDB
     end
 
     -- Fallback for booleans, nil, or the string "true"
@@ -100,10 +108,13 @@ function M:OnEnable()
         C:Debug(self, "ElvUI is not enabled or loaded. Skipping profile check.")
         return
     end
-    local currentStatus = self:GetProfileStatus()
+    local currentStatus, roleMatch, ElvDB = self:GetProfileStatus()
 
     if currentStatus == "main" then
         C:Debug(self, "Skipping: Main character [|cff00ff00" .. tostring(currentStatus) .. "|r]")
+        return
+    elseif ElvDB then
+        C:Debug(self, "Skipping: ElvDB role matches profile [|cff00ff00" .. tostring(currentStatus) .. "|r]")
         return
     elseif currentStatus then
         C:Debug(self, "Skipping: ROSTER role matches profile [|cff00ff00" .. tostring(currentStatus) .. "|r]")

@@ -8,7 +8,7 @@ function M:OnInitialize()
     self.obj = LDB:NewDataObject("Cobalt", {
         type = "launcher",
         text = "Cobalt",
-        icon = "Interface\\Icons\\inv_cosmicvoid_orb",
+        icon = "Interface\\Icons\\inv_12_profession_thematicfoozles_moteofpurevoid_blue",
 
         OnClick = function(_, button)
             if button == "LeftButton" then
