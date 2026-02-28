@@ -106,7 +106,7 @@ function M:OnEnable()
         C:Debug(self, "Skipping: Main character [|cff00ff00" .. tostring(currentStatus) .. "|r]")
         return
     elseif currentStatus then
-        C:Debug(self, "Skipping: ROSTER matches profile [|cff00ff00" .. tostring(currentStatus) .. "|r]")
+        C:Debug(self, "Skipping: ROSTER role matches profile [|cff00ff00" .. tostring(currentStatus) .. "|r]")
         return
     end
 
