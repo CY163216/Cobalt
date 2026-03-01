@@ -71,6 +71,10 @@ function M:CheckAndSetProfiles()
             C:Print(self, string.format("[%s] detected. Switching to |cff00ff00%s|r", reason, TARGET_PROFILE))
             ElvDB.profileKeys[C.mynameRealm] = TARGET_PROFILE
             needsReload = true
+        elseif (currentGlobal ~= "Default") and isMain then
+            C:Debug(self, "Global Profile (main) is [|cff00ff00" .. currentGlobal .. "|r]. Updating to [|cff00ff00midnight|r].")
+            ElvDB.profileKeys[C.mynameRealm] = TARGET_PROFILE
+            needsReload = true
         else
             C:Debug(self, "Global Profile is [|cff00ff00" .. currentGlobal .. "|r]. Skipping Global update.")
             -- Capture the custom profile name to use as the status
@@ -95,7 +99,6 @@ function M:CheckAndSetProfiles()
     if globalMatch and privateMatch then
         -- Use the custom profile name as status if it was skipped, otherwise use true
         local statusValue = customGlobalName or TARGET_PROFILE
-        C:Debug(self, "profile: " .. TARGET_PROFILE .. " x: " .. tostring(statusValue))
         self:SetProfileStatus(statusValue)
     elseif needsReload then
         StaticPopup_Show("COBALT_RELOAD_REQUIRED")
@@ -105,7 +108,6 @@ end
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 
-    C:Debug(self, "ENABLED")
     if not C_AddOns.IsAddOnLoaded("ElvUI") then
         C:Debug(self, "ElvUI is not enabled or loaded. Skipping profile check.")
         return
@@ -129,6 +131,5 @@ function M:OnEnable()
         self:SetProfileStatus(statusType)
         return
     end
-    C:Debug(self, "ENABLED END")
     self:CheckAndSetProfiles()
 end
