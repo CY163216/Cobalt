@@ -24,7 +24,7 @@ C.EXPANSIONS = {
     ["SHADOWLANDS"]  = { color = "|cffffc6ff", label = "Shadowlands" },
     ["DRAGON_ISLES"] = { color = "|cffffe0b3", label = "Dragon Isles" },
     ["KHAZ_ALGAR"]   = { color = "|cffc4c4c4", label = "Khaz Algar" },
-    ["MIDNIGHT"]     = { color = "|cff8c47ff", label = "Midnight" },
+    ["MIDNIGHT"]     = { color = "|cff7a8cff", label = "Midnight" },
 }
 
 C.LUMBER_DATA = {
