@@ -590,6 +590,29 @@ function Panel:UpdateDev(container)
         filterGroup:AddChild(cb)
     end
 
+    -- --- SECTION 2.5: MODULE ENABLE/DISABLE TOGGLES ---
+    local moduleToggleGroup = AceGUI:Create("InlineGroup")
+    moduleToggleGroup:SetTitle("Module Management")
+    moduleToggleGroup:SetFullWidth(true)
+    moduleToggleGroup:SetLayout("Flow")
+    container:AddChild(moduleToggleGroup)
+
+    for name, module in C:IterateModules() do
+        local mToggle = AceGUI:Create("CheckBox")
+        mToggle:SetLabel("Enable " .. name)
+        mToggle:SetRelativeWidth(0.5)
+
+        -- Pull current state
+        mToggle:SetValue(module:IsEnabled())
+
+        -- Call the centralized function
+        mToggle:SetCallback("OnValueChanged", function(_, _, value)
+            C:SetModuleState(name, value)
+        end)
+
+        moduleToggleGroup:AddChild(mToggle)
+    end
+
     -- --- SECTION 3: MODULE COMMANDS ---
     local cmdGroup = AceGUI:Create("InlineGroup")
     cmdGroup:SetTitle("Quick Commands")
@@ -718,7 +741,6 @@ function Panel:UpdateQuests(container)
     end
 end
 --#endregion
-
 
 --#region MARK: GENERAL TAB
 function Panel:UpdateGeneral(container)

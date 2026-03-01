@@ -44,16 +44,26 @@ C:AddLib("LSM", "LibSharedMedia-3.0")
 C:AddLib("LDB", "LibDataBroker-1.1")
 C:AddLib("LDBI", "LibDBIcon-1.0")
 
-
 function C:OnInitialize()
     local AceDB = C.Libs.AceDB
     self.database = AceDB:New("CobaltDB", self.DF, true)
+
+    -- Ensure the modules table exists to avoid nil errors later
+    self.database.profile.modules = self.database.profile.modules or {}
+
+    -- self.DB is pointing to global as per your setup
     self.DB = self.database.global
 
-    -- Disabled all modules that are turned off, profile based
+    -- Iterate and sync module states with the saved profile
     for name, module in self:IterateModules() do
+        -- If the saved setting is explicitly 'false', turn the module off
         if self.database.profile.modules[name] == false then
             module:Disable()
+        else
+            -- Optional: If it's not in the DB, default it to true
+            if self.database.profile.modules[name] == nil then
+                self.database.profile.modules[name] = true
+            end
         end
     end
 

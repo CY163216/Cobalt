@@ -1,4 +1,3 @@
-
 local C = select(2, ...)
 local WM = C:GetModule('Warmode')
 local LSM = C.Libs.LSM
@@ -52,21 +51,13 @@ function WM:Update()
     end
 end
 
-function WM:OnInitialize()
-    self:CreateFrame()
-
-    self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnEvent")
-    self:RegisterEvent("PLAYER_UPDATE_RESTING", "OnEvent")
-    self:RegisterEvent("WAR_MODE_STATUS_UPDATE", "OnEvent")
-    self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "OnEvent")
-    self:RegisterEvent("ZONE_CHANGED", "OnEvent")
-    self:RegisterEvent("PLAYER_FLAGS_CHANGED", "OnEvent")
-end
-
 function WM:OnDisable()
-    -- Ace3 automatically unregisters events/hooks registered via Ace3 mixins
-    -- But you can add manual cleanup here if needed
-    self.frame:Hide()
+    -- Ace3 automatically UNREGISTERS all events registered via self:RegisterEvent
+    -- so you don't need to do that manually.
+    if self.frame then
+        self.frame:Hide()
+        self.frame:SetAlpha(0)
+    end
     C:Debug(self, C.MODULE_DISABLED)
 end
 
@@ -77,6 +68,19 @@ end
 
 function WM:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
+
+    -- Create the frame only once
+    if not self.frame then
+        self:CreateFrame()
+    end
+
+    -- Register events here so they only exist when the module is ON
+    self:RegisterEvent("PLAYER_ENTERING_WORLD", "OnEvent")
+    self:RegisterEvent("PLAYER_UPDATE_RESTING", "OnEvent")
+    self:RegisterEvent("WAR_MODE_STATUS_UPDATE", "OnEvent")
+    self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "OnEvent")
+    self:RegisterEvent("ZONE_CHANGED", "OnEvent")
+    self:RegisterEvent("PLAYER_FLAGS_CHANGED", "OnEvent")
 
     self:Update()
 end

@@ -571,21 +571,23 @@ function C:HasRole(charKey, roleName)
     return char and char.roles and char.roles[roleName] or false
 end
 
-function C:SetModuleState(moduleName, state)
-    local module = self:GetModule(moduleName)
+function C:SetModuleState(name, state)
+    local module = self:GetModule(name)
+    if not module then return end
 
-    -- 1. Update the Module State
+    -- 1. Actual Module State
     if state then
         module:Enable()
     else
         module:Disable()
     end
 
-    -- 2. Update the Database (so it persists across reloads)
-    -- Your Init.lua uses self.database.profile.modules
-    self.database.profile.modules[moduleName] = state
+    -- 2. Persistence (Matches your Init.lua logic)
+    self.database.profile.modules = self.database.profile.modules or {}
+    self.database.profile.modules[name] = state
 
-    C:Print(self, string.format("Cobalt: %s is now %s", moduleName, state and "|cff00ff00On|r" or "|cffff0000Off|r"))
+    -- 3. Feedback
+    C:Debug(self, string.format("Module %s is now %s", name, state and "|cff00ff00Enabled|r" or "|cffff0000Off|r"))
 end
 
 function C:SlashHandler(input)
