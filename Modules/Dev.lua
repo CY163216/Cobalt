@@ -194,6 +194,11 @@ function Dev:ToggleWarmodeModule()
     C:SetModuleState("Warmode", newState)
 end
 
+function Dev:ResetElvProfileDB()
+    C.DB.elvui = {}
+    C:Print(self, "Wiped C.DB.elvui")
+end
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -212,6 +217,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "clean", func = "CleanupOldData", slash = "clean", desc = "Cleanup old database entries."},
     { name = "fake", func = "CreateFakeCharacter", slash = "fake", desc = "Create fake vault character."},
     { name = "wm", func = "ToggleWarmodeModule", slash = "wm", desc = "Toggle warmode module."},
+    { name = "elvui", func = "ResetElvProfileDB", slash = "elvui", desc = "Wipe elvui status/roster db."},
 }
 
 function Dev:SlashHandler(input)

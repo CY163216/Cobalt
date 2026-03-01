@@ -95,6 +95,7 @@ function M:CheckAndSetProfiles()
     if globalMatch and privateMatch then
         -- Use the custom profile name as status if it was skipped, otherwise use true
         local statusValue = customGlobalName or TARGET_PROFILE
+        C:Debug(self, "profile: " .. TARGET_PROFILE .. " x: " .. tostring(statusValue))
         self:SetProfileStatus(statusValue)
     elseif needsReload then
         StaticPopup_Show("COBALT_RELOAD_REQUIRED")
@@ -104,6 +105,7 @@ end
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 
+    C:Debug(self, "ENABLED")
     if not C_AddOns.IsAddOnLoaded("ElvUI") then
         C:Debug(self, "ElvUI is not enabled or loaded. Skipping profile check.")
         return
@@ -127,6 +129,6 @@ function M:OnEnable()
         self:SetProfileStatus(statusType)
         return
     end
-
+    C:Debug(self, "ENABLED END")
     self:CheckAndSetProfiles()
 end
