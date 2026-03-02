@@ -7,6 +7,7 @@ local BPVars = BindPadVars
 
 -- HELPER: Convert "Name - Realm" to BindPad's "Realm_Name"
 local function GetBindPadKey(charKey)
+    if not charKey then return nil end
     local name, realm = charKey:match("^(.-)%s*-%s*(.+)$")
     return name and realm and string.format("%s_%s", realm, name) or nil
 end
@@ -18,7 +19,7 @@ function M:SyncBinds(force)
 
     local config = C.CLASS_PRIORITY[C.myclass]
     if not config or not C.mynameRealm then
-        C:Debug(self, "Missing config or character name for class:", C.myclass)
+        C:Debug(self, "Missing config/name for class:", C.myclass)
         return
     end
 
@@ -27,7 +28,7 @@ function M:SyncBinds(force)
     local isMain = (C.mynameRealm == config.main)
     local isIgnored = db.ignore[C.mynameRealm]
 
-    -- 1. Main Character Logic
+    -- 1. Main Character Logic: Always just update the version tracker
     if isMain then
         if myCurrentVer ~= targetVer then
             db.chars[C.mynameRealm] = targetVer
@@ -36,20 +37,20 @@ function M:SyncBinds(force)
         return
     end
 
-    -- 2. Skip checks
-    if isIgnored then
-        C:Debug(self, "Character ignored. Skipping sync.")
-        return
-    end
-
-    -- 3. Determine if sync is required
+    -- 2. Sync Logic
     local needsSync = (targetVer > myCurrentVer)
-    if not (force or (needsSync and db.forceSync)) then
-        C:Debug(self, string.format("Sync not required or forceSync OFF (v%d/v%d).", myCurrentVer, targetVer))
+
+    -- Logic: Proceed if 'force' is true OR (version is old AND forceSync is ON AND not ignored)
+    local shouldSync = force or (needsSync and db.forceSync and not isIgnored)
+
+    if not shouldSync then
+        if isIgnored and needsSync then
+            C:Debug(self, string.format("Sync skipped: v%d -> v%d (Character Ignored)", myCurrentVer, targetVer))
+        end
         return
     end
 
-    -- 4. Safety & API Checks
+    -- 3. Resolve Keys & API Safety
     local sourceKey = GetBindPadKey(config.main)
     local dbKey = sourceKey and ("PROFILE_" .. sourceKey)
 
@@ -63,8 +64,10 @@ function M:SyncBinds(force)
         return
     end
 
-    -- 5. Execute Sync
-    C:Print(self, string.format("Syncing BindPad (v%d -> v%d) from |cff00ff00%s|r.", myCurrentVer, targetVer, config.main))
+    -- 4. Execute Sync
+    C:Print(self, string.format("%sBindPad (v%d -> v%d) from |cff00ff00%s|r.",
+        force and "Force updating " or "Updating ", myCurrentVer, targetVer, config.main))
+
     BPCore.DoCopyFrom(sourceKey)
     db.chars[C.mynameRealm] = targetVer
 end
@@ -74,7 +77,6 @@ function M:SetupIgnoreList()
     local count = 0
 
     for charKey, data in pairs(C.ROSTER) do
-        -- Auto-ignore bankers if not already explicitly set
         if data.roles and data.roles.banker and C.DB.bindpad.ignore[charKey] == nil then
             C.DB.bindpad.ignore[charKey] = true
             count = count + 1
@@ -89,5 +91,6 @@ end
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
     self:SetupIgnoreList()
-    C_Timer.After(0.1, function() self:SyncBinds() end)
+    -- Delay ensures BindPad has loaded its own DB first
+    C_Timer.After(0.5, function() self:SyncBinds() end)
 end
