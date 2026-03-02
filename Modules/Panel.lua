@@ -243,7 +243,7 @@ function Panel:UpdateBindPad(container)
         btn:SetCallback("OnClick", function()
             if not C.DB.bindpad.chars then C.DB.bindpad.chars = {} end
             C.DB.bindpad.chars[C.mynameRealm] = targetVer
-            BP:SyncBinds()
+            BP:SyncBinds(true)
             self:RefreshContent()
             C:Debug(self, "Manual sync triggered for " .. C.mynameRealm)
         end)

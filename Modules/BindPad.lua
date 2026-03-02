@@ -1,111 +1,93 @@
 local C = select(2, ...)
 local M = C:GetModule("BindPad")
 
+-- Localize External Addon Globals
+local BPCore = BindPadCore
+local BPVars = BindPadVars
+
 -- HELPER: Convert "Name - Realm" to BindPad's "Realm_Name"
 local function GetBindPadKey(charKey)
     local name, realm = charKey:match("^(.-)%s*-%s*(.+)$")
-    if name and realm then
-        return string.format("%s_%s", realm, name)
-    end
-    return nil
+    return name and realm and string.format("%s_%s", realm, name) or nil
 end
 
-function M:SyncBinds()
-    -- Initialize DB structure if missing
+function M:SyncBinds(force)
+    -- Initialize DB structure
     C.DB.bindpad = C.DB.bindpad or { chars = {}, mainVersions = {}, forceSync = false, ignore = {} }
+    local db = C.DB.bindpad
 
     local config = C.CLASS_PRIORITY[C.myclass]
     if not config or not C.mynameRealm then
-        C:Debug(self, "No config for class:", C.myclass)
+        C:Debug(self, "Missing config or character name for class:", C.myclass)
         return
     end
 
-    -- 1. Master Version Check: Get the target version from our new DB table
-    local myCurrentVer = (C.DB.bindpad.chars and C.DB.bindpad.chars[C.mynameRealm]) or 0
-    local targetVer  = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[C.myclass]) or 1
-    local ignore = C.DB.bindpad.ignore[C.mynameRealm] or false
+    local myCurrentVer = db.chars[C.mynameRealm] or 0
+    local targetVer = db.mainVersions[C.myclass] or 1
+    local isMain = (C.mynameRealm == config.main)
+    local isIgnored = db.ignore[C.mynameRealm]
 
-    -- skip character is it's set to ignore
-    if ignore then C:Debug(self, string.format("Version set to ignore, (v%d -> v%d).", myCurrentVer, targetVer)) return end
-
-    -- 2. Main Character Logic: Just update the DB to match the Master Version
-    if C.mynameRealm == config.main then
+    -- 1. Main Character Logic
+    if isMain then
         if myCurrentVer ~= targetVer then
-            C.DB.bindpad.chars[C.mynameRealm] = targetVer
-            C:Debug(self, string.format("Main Character updated to (v%d -> v%d).", myCurrentVer, targetVer))
-            return
-        else
-            C:Debug(self, "Main Character on correct version v" .. targetVer)
-            return
+            db.chars[C.mynameRealm] = targetVer
+            C:Debug(self, string.format("Main updated: v%d -> v%d", myCurrentVer, targetVer))
         end
+        return
     end
 
-    -- 3. Sync Condition: Is forceSync on, or is the Master Version higher than ours?
+    -- 2. Skip checks
+    if isIgnored then
+        C:Debug(self, "Character ignored. Skipping sync.")
+        return
+    end
+
+    -- 3. Determine if sync is required
     local needsSync = (targetVer > myCurrentVer)
-    if needsSync then
-        if not C.DB.bindpad.forceSync then
-            C:Debug(self, string.format("Force Sync is OFF. Ignoring version mismatch (v%d -> v%d).", myCurrentVer, targetVer))
-            return
-        end
-        local sourceKey = GetBindPadKey(config.main)
-        if not sourceKey then 
-            C:Debug(self, "Could not resolve BindPadKey for " .. config.main)
-            return 
-        end
-
-        -- SAFETY: Check BindPadVars (Addon's internal DB)
-        local dbKey = "PROFILE_" .. sourceKey
-        if not BindPadVars or not BindPadVars[dbKey] then
-            C:Print(self, "|cffff0000Error:|r BindPad profile '|cff00ff00" .. dbKey .. "|r' not found.")
-            return
-        end
-
-        -- 4. Execute the Sync via BindPad API
-        if BindPadCore and BindPadCore.DoCopyFrom then
-            C:Print(self, string.format("Updating BindPad (v%d -> v%d) from |cff00ff00%s|r.", myCurrentVer, targetVer, config.main))
-
-            -- Perform the actual copy
-            BindPadCore.DoCopyFrom(sourceKey)
-
-            -- 5. Update local version to match the Master Version
-            C.DB.bindpad.chars[C.mynameRealm] = targetVer
-        else
-            C:Print(self, "|cffff0000Error:|r BindPad API not found.")
-        end
-    else
-        C:Debug(self, "Binds are up to date (v" .. myCurrentVer .. ").")
+    if not (force or (needsSync and db.forceSync)) then
+        C:Debug(self, string.format("Sync not required or forceSync OFF (v%d/v%d).", myCurrentVer, targetVer))
+        return
     end
+
+    -- 4. Safety & API Checks
+    local sourceKey = GetBindPadKey(config.main)
+    local dbKey = sourceKey and ("PROFILE_" .. sourceKey)
+
+    if not (BPCore and BPCore.DoCopyFrom) then
+        C:Print(self, "|cffff0000Error:|r BindPad API not found.")
+        return
+    end
+
+    if not (BPVars and BPVars[dbKey]) then
+        C:Print(self, string.format("|cffff0000Error:|r Profile '|cff00ff00%s|r' not found.", dbKey or "Unknown"))
+        return
+    end
+
+    -- 5. Execute Sync
+    C:Print(self, string.format("Syncing BindPad (v%d -> v%d) from |cff00ff00%s|r.", myCurrentVer, targetVer, config.main))
+    BPCore.DoCopyFrom(sourceKey)
+    db.chars[C.mynameRealm] = targetVer
 end
 
 function M:SetupIgnoreList()
-    -- 1. Ensure the ignore table exists
-    if not C.DB.bindpad.ignore then C.DB.bindpad.ignore = {} end
-
+    C.DB.bindpad.ignore = C.DB.bindpad.ignore or {}
     local count = 0
+
     for charKey, data in pairs(C.ROSTER) do
-        -- 2. Check if the character is a banker in the hardcoded ROSTER
-        if data.roles and data.roles.banker then    
-            -- 3. ONLY proceed if the key does not exist yet (is nil)
-            -- This respects existing 'true' OR 'false' saved values
-            if C.DB.bindpad.ignore[charKey] == nil then
-                C.DB.bindpad.ignore[charKey] = true
-                count = count + 1
-                C:Debug(self, "New banker auto-ignored:", charKey)
-            end
+        -- Auto-ignore bankers if not already explicitly set
+        if data.roles and data.roles.banker and C.DB.bindpad.ignore[charKey] == nil then
+            C.DB.bindpad.ignore[charKey] = true
+            count = count + 1
         end
     end
 
     if count > 0 then
-        C:Debug(self, string.format("BindPad: %d new banker(s) initialized as ignored.", count))
+        C:Debug(self, string.format("Initialized %d new banker(s) as ignored.", count))
     end
 end
 
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
-
     self:SetupIgnoreList()
-
-    C_Timer.After(0.1, function()
-        self:SyncBinds()
-    end)
+    C_Timer.After(0.1, function() self:SyncBinds() end)
 end
