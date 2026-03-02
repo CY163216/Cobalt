@@ -49,7 +49,7 @@ function M:CheckAndSetProfiles()
             needsReload = true
             C:Debug(self, string.format("Initializing ElvUI profile to: [|cff00ff00%s|r]", target))
         else
-            C:Debug(self, "Cobalt DB initialized (ElvUI already matched). No reload needed.")
+            C:Debug(self, "Cobalt DB initialized (ElvUI already matched).")
         end
     else
         -- 2. MAINTENANCE: Sync Cobalt DB with user's manual ElvUI changes
