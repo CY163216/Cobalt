@@ -40,9 +40,17 @@ function M:CheckAndSetProfiles()
         local isMain = C.ROSTER[nameKey] and C.ROSTER[nameKey].roles.main
         local target = isMain and DEFAULT_PROFILES.MAIN or DEFAULT_PROFILES.ALT
 
-        ElvDB.profileKeys[nameKey] = target
+        -- Update the Cobalt DB regardless
         C.DB.elvui[nameKey] = target
-        needsReload = true
+
+        -- Only trigger a reload if ElvUI isn't already using the target profile
+        if currentElv ~= target then
+            ElvDB.profileKeys[nameKey] = target
+            needsReload = true
+            C:Debug(self, string.format("Initializing ElvUI profile to: [|cff00ff00%s|r]", target))
+        else
+            C:Debug(self, "Cobalt DB initialized (ElvUI already matched). No reload needed.")
+        end
     else
         -- 2. MAINTENANCE: Sync Cobalt DB with user's manual ElvUI changes
         if currentSaved ~= currentElv then
