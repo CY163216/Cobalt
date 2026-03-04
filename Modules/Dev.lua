@@ -199,18 +199,32 @@ function Dev:ResetElvProfileDB()
     C:Print(self, "Wiped C.DB.elvui")
 end
 
-function Dev:PurgeCharacter(targetKey)
-    if not targetKey then C:Debug(self, "No character key entered.") end
-    for k, v in pairs(C.DB) do
-        -- If the key matches exactly what you entered, delete it
+
+function Dev:PurgeCharacter(targetKey, tbl)
+    -- Initial setup: if no table is passed, start with C.DB
+    local currentTable = tbl or C.DB
+    -- Safety check for the target key
+    if not targetKey or targetKey == "" then
+        C:Debug(self, "No character key entered.")
+        return
+    end
+
+    for k, v in pairs(currentTable) do
         if k == targetKey then
-            C.DB[k] = nil
-        -- If we find another table, look inside it too (recursion)
+            currentTable[k] = nil
         elseif type(v) == "table" then
-            Dev:PurgeCharacter(targetKey)
+            -- Prevent infinite loops into UI frames/metatables
+            if not getmetatable(v) then
+                -- RECURSIVE CALL: Pass the key AND the sub-table
+                self:PurgeCharacter(targetKey, v)
+            end
         end
     end
-    C:Debug(self, string.format("Purged [%s].", targetKey))
+
+    -- Only print the debug message on the top-level call
+    if not tbl then
+        C:Debug(self, string.format("Purged [|cff00ff00%s|r].", targetKey))
+    end
 end
 
 -- =====================================================
@@ -238,9 +252,9 @@ Dev.COMMAND_MANIFEST = {
 function Dev:SlashHandler(input)
     -- If no input, show help
     if not input or input == "" then
-        print("|cff00aaffCobalt Dev Commands:|r")
+        C:Print(self, "|cff00aaffCobalt Dev Commands:|r")
         for _, cmd in ipairs(Dev.COMMAND_MANIFEST) do
-            print(string.format("  /cdev |cff00ff00%s|r - %s", cmd.slash, (cmd.desc or cmd.name)))
+            C:Print(self, string.format("  /cdev |cff00ff00%s|r - %s", cmd.slash, (cmd.desc or cmd.name)))
         end
         return
     end
@@ -259,17 +273,18 @@ function Dev:SlashHandler(input)
         end
     end
 
-    print("|cffff0000Error:|r Command '" .. command .. "' not found. Type /cdev for help.")
+    C:Print(self, "|cffff0000Error:|r Command '" .. command .. "' not found. Type /cdev for help.")
 end
 
 -- =====================================================
 -- OnEnable
 -- =====================================================
 function Dev:OnEnable()
+    C:Debug(self, C.MODULE_ENABLED)
     C:RegisterChatCommand("cdev", function(input)
         Dev:SlashHandler(input)
     end)
 
-    C:Debug(self, "Dev Module: /cdev registered via Manual Handler")
+    -- C:Debug(self, "Dev Module: /cdev registered via Manual Handler")
 end
 
