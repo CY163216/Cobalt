@@ -199,6 +199,20 @@ function Dev:ResetElvProfileDB()
     C:Print(self, "Wiped C.DB.elvui")
 end
 
+function Dev:PurgeCharacter(targetKey)
+    if not targetKey then C:Debug(self, "No character key entered.") end
+    for k, v in pairs(C.DB) do
+        -- If the key matches exactly what you entered, delete it
+        if k == targetKey then
+            C.DB[k] = nil
+        -- If we find another table, look inside it too (recursion)
+        elseif type(v) == "table" then
+            Dev:PurgeCharacter(targetKey)
+        end
+    end
+    C:Debug(self, string.format("Purged [%s].", targetKey))
+end
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -218,6 +232,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "fake", func = "CreateFakeCharacter", slash = "fake", desc = "Create fake vault character."},
     { name = "wm", func = "ToggleWarmodeModule", slash = "wm", desc = "Toggle warmode module."},
     { name = "elvui", func = "ResetElvProfileDB", slash = "elvui", desc = "Wipe elvui status/roster db."},
+    { name = "purge", func = "PurgeCharacter", slash = "purge", desc = "Purge character from db."},
 }
 
 function Dev:SlashHandler(input)
@@ -230,15 +245,15 @@ function Dev:SlashHandler(input)
         return
     end
 
-    -- Split input to find the sub-command
-    local command = input:lower():trim()
+    local command, args = input:trim():match("^(%S+)%s*(.*)$")
+    command = command:lower()
 
     for _, cmd in ipairs(Dev.COMMAND_MANIFEST) do
         if command == cmd.slash then
             -- Find the function in the Dev module
             local action = self[cmd.func]
             if type(action) == "function" then
-                action(self) -- Run it!
+                action(self, args) -- Run it!
                 return
             end
         end
