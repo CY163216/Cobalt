@@ -605,7 +605,7 @@ function C:CheckAllCalendarEvents()
     end
 end
 
-function C:CheckCalendarEvent(holidayNameOrID)
+function C:CheckCalendarEvent(module, holidayNameOrID)
     local date = C_DateAndTime.GetCurrentCalendarTime()
     C_Calendar.SetAbsMonth(date.month, date.year)
 
@@ -618,18 +618,18 @@ function C:CheckCalendarEvent(holidayNameOrID)
         if event then
             if inputType == "string" then
                 if event.title == holidayNameOrID then
-                    C:Debug(self, "Holiday: " .. event.title)
+                    C:Debug(module, "Holiday: " .. event.title)
                     return true, event
                 end
             elseif inputType == "number" then
                 if event.eventID == holidayNameOrID then
-                    C:Debug(self, "Holiday: " .. event.title)
+                    C:Debug(module, "Holiday: " .. event.title)
                     return true, event
                 end
             end
         end
     end
-    C:Debug(self, string.format("(%s) Holiday not found.", holidayNameOrID))
+    C:Debug(module, string.format("(%s) Holiday not found.", holidayNameOrID))
     return false
 end
 

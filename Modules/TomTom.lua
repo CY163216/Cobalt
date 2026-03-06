@@ -1,6 +1,8 @@
 local C = select(2, ...)
 local TT = C:GetModule("TomTom")
 
+local TomTom = TomTom
+
 local REAGENTS = {
     ["Alchemy"]        = "5x Moonberry Juice, 5x Fizzy Faire Drink (local vendor)",
     ["Tailoring"]      = "1x Coarse Thread, 1x Red Dye, 1x Blue Dye",
@@ -88,16 +90,16 @@ end
 
 function TT:IsDMFActive()
     -- event.eventID == 479 or event.title:find("Darkmoon Faire")
-    return C:CheckCalendarEvent(479)
+    return C:CheckCalendarEvent(self, 479)
 end
 
 function TT:HandleZoneChange()
     local MIDNIGHT_ZONES = {
         [407]  = true, -- Darkmoon Faire
-        [2393] = true, -- Midnight Silvermoon
+        -- [2393] = true, -- Midnight Silvermoon
     }
     local zoneID = C_Map.GetBestMapForUnit("player")
-    if  MIDNIGHT_ZONES[zoneID] then
+    if MIDNIGHT_ZONES[zoneID] then
         self:ProfessionsDMF()
     end
 end
