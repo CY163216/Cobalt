@@ -498,7 +498,7 @@ function C:Debug(module, ...)
 
     local filter = C.DB.dev.moduleFilter
 
-    if not filter or next(filter) == nil or filter[name] then
+    if name == "Cobalt" or (not filter or next(filter) == nil or filter[name]) then
         Log("|cffFF79AC[Cobalt]|r", "00FF00", module, ...)
     end
 end

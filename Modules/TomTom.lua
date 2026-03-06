@@ -1,8 +1,6 @@
 local C = select(2, ...)
 local TT = C:GetModule("TomTom")
 
-_G["DMF"] = function() TT:IsDMFActive() end
-
 local REAGENTS = {
     ["Alchemy"]        = "5x Moonberry Juice, 5x Fizzy Faire Drink (local vendor)",
     ["Tailoring"]      = "1x Coarse Thread, 1x Red Dye, 1x Blue Dye",
@@ -94,24 +92,25 @@ function TT:IsDMFActive()
 end
 
 function TT:HandleZoneChange()
-    -- Map ID 407 is Darkmoon Island
-    if C_Map.GetBestMapForUnit("player") == 407 then
+    local MIDNIGHT_ZONES = {
+        [407]  = true, -- Darkmoon Faire
+        [2393] = true, -- Midnight Silvermoon
+    }
+    local zoneID = C_Map.GetBestMapForUnit("player")
+    if  MIDNIGHT_ZONES[zoneID] then
         self:ProfessionsDMF()
-    -- else
-    --     -- Optional: Clear pins if we leave the island to keep the map clean
-    --     C:Debug(self, "Clearing DMF waypoints.")
-    --     self:ClearDMFWaypoints()
     end
 end
 
--- =====================================================
--- OnEnable
--- =====================================================
+function TT:OnDisable()
+    self:ClearDMFWaypoints()
+    C:Debug(self, "DMF inactive")
+    C:Debug(self, C.MODULE_DISABLED)
+     self:UnregisterAllEvents()
+end
+
 function TT:OnEnable()
     if not self:IsDMFActive() then
-        self:ClearDMFWaypoints()
-        C:Debug(self, "DMF inactive")
-        C:Debug(self, C.MODULE_DISABLED)
         self:Disable()
         return false
     end

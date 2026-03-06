@@ -524,7 +524,7 @@ end
 function Panel:UpdateDev(container)
     local dev = C.DB.dev
     if not dev then return end
-    dev.moduleFilter = dev.moduleFilter or {}
+    dev.moduleFilter = dev.moduleFilter or { ["Cobalt"] = true }
 
     -- --- SECTION 1: GLOBAL DEBUG SETTINGS ---
     local globalGroup = AceGUI:Create("InlineGroup")
@@ -578,7 +578,11 @@ function Panel:UpdateDev(container)
     filterActions:AddChild(btnNone)
 
     -- The Module List
-    for name, _ in C:IterateModules() do
+    local modules = { ["Cobalt"] = C }
+    for name, module in C:IterateModules() do
+        modules[name] = module
+    end
+    for name, _ in pairs(modules) do
         local cb = AceGUI:Create("CheckBox")
         cb:SetLabel(name)
         cb:SetRelativeWidth(0.5) -- Two columns
