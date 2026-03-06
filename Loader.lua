@@ -445,6 +445,24 @@ C.ROSTER = {
 }
 
 C.TRACKED_QUESTS = {
+    -- Darkmoon Faire: Primary Professions
+    -- { name = "Alchemy | A Fizzy Fusion", id = 29506 },
+    -- { name = "Blacksmithing | Baby Needs Two Pair of Shoes", id = 29508 },
+    -- { name = "Enchanting | Putting Trash to Good Use", id = 29510 },
+    -- { name = "Engineering | Talkin' Tonks", id = 29511 },
+    -- { name = "Herbalism | Herbs for Healing", id = 29514 },
+    -- { name = "Inscription | Writing the Future", id = 29515 },
+    -- { name = "Jewelcrafting | Keeping the Faire Sparkling", id = 29516 },
+    -- { name = "Leatherworking | Eyes on the Prizes", id = 29517 },
+    -- { name = "Mining | Rearm, Reuse, Recycle", id = 29518 },
+    -- { name = "Skinning | Tan My Hide", id = 29519 },
+    -- { name = "Tailoring | Banners, Banners Everywhere!", id = 29520 },
+
+    -- -- Darkmoon Faire: Secondary Professions
+    -- { name = "Archaeology | Fun for the Little Ones", id = 29507 },
+    -- { name = "Cooking | Putting the Crunch in the Frog", id = 29509 },
+    -- { name = "Fishing | Spoilin' for Salty Sea Dogs", id = 29513 },
+
     -- Case 1: Universal ID (Same for everyone)
     -- { name = "Special Assignment", id = 82689 },
     { name = "Crafter's Needed", id = 93723 },
@@ -553,15 +571,65 @@ end
 -- Utility function: returns true if the holiday name is found for today
 function C:IsHolidayActive(holidayName)
     local day = tonumber(date("%d")) or 0
-    local numEvents = C_Calendar.GetNumDayEvents(0, day)
+    local monthOffset = 0 -- 0 is current month
+    local numEvents = C_Calendar.GetNumDayEvents(monthOffset, day)
 
     for i = 1, numEvents do
-        local info = C_Calendar.GetHolidayInfo(0, day, i)
-        if info and info.name == holidayName then
+        -- 1. Check Holiday Info (Standard Holidays)
+        local holidayInfo = C_Calendar.GetHolidayInfo(monthOffset, day, i)
+        if holidayInfo and holidayInfo.name == holidayName then
+            return true
+        end
+
+        -- 2. Check Day Event (DMF and recurring events)
+        local eventInfo = C_Calendar.GetDayEvent(monthOffset, day, i)
+        if eventInfo and eventInfo.title == holidayName then
             return true
         end
     end
 
+    return false
+end
+
+function C:CheckAllCalendarEvents()
+    local date = C_DateAndTime.GetCurrentCalendarTime()
+    C_Calendar.SetAbsMonth(date.month, date.year)
+
+    local numEvents = C_Calendar.GetNumDayEvents(0, date.monthDay)
+    for i = 1, numEvents do
+        local event = C_Calendar.GetDayEvent(0, date.monthDay, i)
+        if event then
+            C:Print(self, "Event Name: " .. event.title)
+            C:Print(self, "Event ID: " .. event.eventID)
+        end
+    end
+end
+
+function C:CheckCalendarEvent(holidayNameOrID)
+    local date = C_DateAndTime.GetCurrentCalendarTime()
+    C_Calendar.SetAbsMonth(date.month, date.year)
+
+    -- 2. Determine the type of input once to save processing
+    local inputType = type(holidayNameOrID)
+
+    local numEvents = C_Calendar.GetNumDayEvents(0, date.monthDay)
+    for i = 1, numEvents do
+        local event = C_Calendar.GetDayEvent(0, date.monthDay, i)
+        if event then
+            if inputType == "string" then
+                if event.title == holidayNameOrID then
+                    C:Debug(self, "Holiday: " .. event.title)
+                    return true, event
+                end
+            elseif inputType == "number" then
+                if event.eventID == holidayNameOrID then
+                    C:Debug(self, "Holiday: " .. event.title)
+                    return true, event
+                end
+            end
+        end
+    end
+    C:Debug(self, string.format("(%s) Holiday not found.", holidayNameOrID))
     return false
 end
 

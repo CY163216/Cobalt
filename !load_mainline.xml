@@ -15,6 +15,7 @@
     <Script file="Modules\Panel.lua"/>
     <Script file="Modules\Quests.lua"/>
     <Script file="Modules\SharedMedia.lua"/>
+    <Script file="Modules\TomTom.lua"/>
     <Script file="Modules\Vault.lua"/>
     <Script file="Modules\Warmode.lua"/>
 

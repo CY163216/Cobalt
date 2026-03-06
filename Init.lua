@@ -24,6 +24,7 @@ C.Quests            = C:NewModule("Quests", "AceEvent-3.0")
 C.SharedMedia       = C:NewModule("SharedMedia")
 C.Vault             = C:NewModule("Vault", "AceEvent-3.0")
 C.Warmode           = C:NewModule("Warmode", "AceEvent-3.0")
+C.TomTom            = C:NewModule("TomTom", "AceEvent-3.0")
 
 C.Libs      = {}
 C.LibsMinor = {}
