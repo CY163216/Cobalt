@@ -227,6 +227,40 @@ function Dev:PurgeCharacter(targetKey, tbl)
     end
 end
 
+function Dev:TomTomDMF()
+    -- #407 is the uiMapID for Darkmoon Island
+    local waypointsList = {
+        { mapID = 407, x = 55.00, y = 70.77, icon = 134071, desc = "DMF Jewelcrafting, Herbalism, Skinning" }, -- Red Gem
+        { mapID = 407, x = 50.46, y = 69.61, icon = 136240, desc = "DMF Alchemy" },                         -- Potion
+        { mapID = 407, x = 52.81, y = 67.99, icon = 133971, desc = "DMF Cooking, Fishing" },               -- Pot/Fish
+        { mapID = 407, x = 51.11, y = 82.02, icon = 136241, desc = "DMF Blacksmithing" },                  -- Hammer
+        { mapID = 407, x = 55.54, y = 55.02, icon = 136249, desc = "DMF Tailoring" },                     -- Needle
+        { mapID = 407, x = 53.22, y = 75.81, icon = 136244, desc = "DMF Enchanting, Inscription" },        -- Dust
+        { mapID = 407, x = 49.36, y = 60.86, icon = 136243, desc = "DMF Engineering, Leatherworking, Mining" }, -- Cog
+    }
+
+    if not TomTom then
+        C:Print("TomTom not found! Please enable it.")
+        return
+    end
+
+    -- 2. Loop through and add to TomTom
+    for _, data in pairs(waypointsList) do
+        TomTom:AddWaypoint(data.mapID, data.x/100, data.y/100, {
+            title = data.desc,
+            persistent = false,
+            -- Use the ID from the table, or fallback to Darkmoon Ticket (463445)
+            minimap_icon = data.icon or 463445,
+            worldmap_icon = data.icon or 463445,
+            -- Ensure size is set so they are visible
+            minimap_icon_size = 18,
+            worldmap_icon_size = 18,
+        })
+    end
+
+    C:Print("Added " .. #waypointsList .. " profession waypoints to Darkmoon Island.")
+end
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -247,6 +281,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "wm", func = "ToggleWarmodeModule", slash = "wm", desc = "Toggle warmode module."},
     { name = "elvui", func = "ResetElvProfileDB", slash = "elvui", desc = "Wipe elvui status/roster db."},
     { name = "purge", func = "PurgeCharacter", slash = "purge", desc = "Purge character from db."},
+    { name = "dmf", func = "TomTomDMF", slash = "dmf", desc = "Add DMF profession quest waypoints."},
 }
 
 function Dev:SlashHandler(input)
