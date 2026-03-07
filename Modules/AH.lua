@@ -16,7 +16,7 @@ function M:MarkAsDone(reason)
     else
         C:Debug(self, "No favorites found. Module detached.")
     end
-    self:Disable() 
+    self:Disable()
 end
 
 function M:OnAHOpen()
@@ -45,7 +45,7 @@ function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 
     if self:IsCleared() then
-        C:Debug(self, "AH status: |cff00ff00Cleared|r")
+        C:Debug(self, "AH status: |cff00ff00Cleared|r, disabling.")
         C:Debug(self, C.MODULE_DISABLED)
         self:Disable()
         return

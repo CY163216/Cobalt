@@ -1,8 +1,6 @@
 local C = select(2, ...)
 local TT = C:GetModule("TomTom")
 
-local TomTom = TomTom
-
 local REAGENTS = {
     ["Alchemy"]        = "5x Moonberry Juice, 5x Fizzy Faire Drink (local vendor)",
     ["Tailoring"]      = "1x Coarse Thread, 1x Red Dye, 1x Blue Dye",
