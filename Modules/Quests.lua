@@ -2,7 +2,6 @@ local C = select(2, ...)
 local M = C:GetModule("Quests")
 
 function M:UpdateQuestStatus()
-    C:Debug(self, "Delay 0.5...")
     -- Delay the rest by 0.5 seconds
     C_Timer.After(0.5, function()
         -- Put the code you want to run after the delay here
@@ -10,7 +9,7 @@ function M:UpdateQuestStatus()
     end)
 end
 
-function M:CheckQuestStatus(login)
+function M:CheckQuestStatus()
     local charKey = C.mynameRealm
     local charLevel = C.mylevel
     if charLevel < 80 then return end
@@ -42,7 +41,7 @@ function M:CheckQuestStatus(login)
     local questName = "Crafter's Needed"
     local questCompleted = C.DB.quests[charKey][questName]
     local isBanker = C.ROSTER[charKey].roles["banker"]
-    if not questCompleted and not isBanker and login then
+    if not questCompleted and not isBanker then
         C:Debug(self, "Quest alert popup window.")
         self:ShowQuestAlert()
     end
