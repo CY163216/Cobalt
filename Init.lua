@@ -62,16 +62,14 @@ function C:OnInitialize()
     -- self.PF is pointing to profile
     self.PF = self.database.profile
 
-    -- Iterate and sync module states with the saved profile
+    -- Sync modules with character profile before they "Enable"
     for name, module in self:IterateModules() do
-        -- If the saved setting is explicitly 'false', turn the module off
-        if self.database.profile.modules[name] == false then
-            module:Disable()
-        else
-            -- Optional: If it's not in the DB, default it to true
-            if self.database.profile.modules[name] == nil then
-                self.database.profile.modules[name] = true
-            end
+        local isEnabled = self.database.profile.modules[name]
+
+        -- If nil (first run), it uses the module's default (usually true)
+        -- If false, it tells Ace3 NOT to enable this module for this character
+        if isEnabled == false then
+            module:SetDefaultModuleState(false)
         end
     end
 
