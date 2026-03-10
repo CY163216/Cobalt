@@ -41,13 +41,18 @@ function M:OnSearchFailed()
     self:MarkAsDone("FAILED")
 end
 
+function M:OnDisable()
+    C:Debug(self, "AH status: |cff00ff00Cleared|r, disabling.")
+    C:Debug(self, C.MODULE_DISABLED)
+    self:UnregisterAllEvents()
+end
+
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 
     if self:IsCleared() then
-        C:Debug(self, "AH status: |cff00ff00Cleared|r, disabling.")
-        C:Debug(self, C.MODULE_DISABLED)
-        self:Disable()
+        -- disable module, save it to profile
+        C:SetModuleState(self)
         return
     end
 

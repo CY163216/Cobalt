@@ -47,13 +47,20 @@ C:AddLib("LDBI", "LibDBIcon-1.0")
 
 function C:OnInitialize()
     local AceDB = C.Libs.AceDB
-    self.database = AceDB:New("CobaltDB", self.DF, true)
+    -- #Use Defaults on all characters
+    -- self.database = AceDB:New("CobaltDB", self.DF, true)
+
+    -- #Use Seperate profiles
+    self.database = AceDB:New("CobaltDB", self.DF)
 
     -- Ensure the modules table exists to avoid nil errors later
     self.database.profile.modules = self.database.profile.modules or {}
 
     -- self.DB is pointing to global as per your setup
     self.DB = self.database.global
+
+    -- self.PF is pointing to profile
+    self.PF = self.database.profile
 
     -- Iterate and sync module states with the saved profile
     for name, module in self:IterateModules() do

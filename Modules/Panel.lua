@@ -611,7 +611,7 @@ function Panel:UpdateDev(container)
 
         -- Call the centralized function
         mToggle:SetCallback("OnValueChanged", function(_, _, value)
-            C:SetModuleState(name, value)
+            C:SetModuleState(module, value)
         end)
 
         moduleToggleGroup:AddChild(mToggle)

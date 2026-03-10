@@ -102,16 +102,17 @@ function TT:HandleZoneChange()
     end
 end
 
+    -- C:SetModuleState(self)
 function TT:OnDisable()
     self:ClearDMFWaypoints()
     C:Debug(self, "DMF inactive")
     C:Debug(self, C.MODULE_DISABLED)
-     self:UnregisterAllEvents()
 end
 
 function TT:OnEnable()
     if not self:IsDMFActive() then
-        self:Disable()
+        -- disable module, save it to profile
+        C:SetModuleState(self)
         return false
     end
 

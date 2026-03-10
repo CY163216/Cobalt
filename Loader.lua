@@ -639,23 +639,57 @@ function C:HasRole(charKey, roleName)
     return char and char.roles and char.roles[roleName] or false
 end
 
-function C:SetModuleState(name, state)
-    local module = self:GetModule(name)
-    if not module then return end
 
-    -- 1. Actual Module State
+-- function C:SetModuleState(mod, state)
+--     -- DEBUG START
+--     local inputType = type(mod)
+--     local inputString = tostring(mod)
+--     C:Debug(self, string.format("SetModuleState Input - Type: %s, Value: %s", inputType, inputString))
+--     -- DEBUG END
+
+--     -- 1. Get the module safely
+--     local module = self:GetModule(mod, true)
+
+--     if not module then
+--         C:Debug(self, "Result: Module NOT found. (Tip: If Input Type was 'table', GetModule failed because it needs a string)")
+--     else
+--         C:Debug(self, "Result: Module found successfully: " .. module:GetName())
+--     end
+
+--     -- ... rest of your function
+-- end
+
+function C:SetModuleState(module, state)
+    -- 1. Get the module safely (true = silent, no error if missing)
+    local name = module:GetName(mod)
+
+    -- if type(module) == "table" and module.GetName then
+    --     C:Debug(self, "SetModuleState, TABLE " .. name)
+    -- end
+
+    -- if not module then
+    --     C:Debug(self, "SetModuleState: Module '" .. tostring(module) .. "' not found.")
+    --     return
+    -- end
+
+    -- 2. Actual Module State
+    -- We use tostring(module) or name to avoid concatenation errors
     if state then
+        -- C:Debug(self, "Enabling Module: " .. name)
         module:Enable()
     else
+        -- C:Debug(self, "Disabling Module: " .. name)
         module:Disable()
     end
 
-    -- 2. Persistence (Matches your Init.lua logic)
+    -- 3. Persistence
+    -- AceDB ensures 'profile' exists, but we ensure 'modules' exists
     self.database.profile.modules = self.database.profile.modules or {}
-    self.database.profile.modules[name] = state
+    self.database.profile.modules[name] = state or false
 
-    -- 3. Feedback
-    C:Debug(self, string.format("Module %s is now %s", name, state and "|cff00ff00Enabled|r" or "|cffff0000Off|r"))
+    -- 4. Feedback
+    local statusText = state and C.MODULE_ENABLED or C.MODULE_DISABLED
+    C:Debug(self, string.format("%s: %s", name, statusText))
 end
 
 function C:SlashHandler(input)
