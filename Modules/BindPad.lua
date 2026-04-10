@@ -46,6 +46,7 @@ function M:SyncBinds(force)
     if not shouldSync then
         if isIgnored and needsSync then
             C:Debug(self, string.format("Sync skipped: v%d -> v%d (Character Ignored)", myCurrentVer, targetVer))
+            C:SetModuleState(self, false)
         end
         return
     end

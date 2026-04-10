@@ -227,6 +227,19 @@ function Dev:PurgeCharacter(targetKey, tbl)
     end
 end
 
+function Dev:EnableTomTomForAll()
+    -- Ensure CobaltDB and the profiles table exist
+    if not CobaltDB or not CobaltDB.profiles then return end
+
+    for _, data in pairs(CobaltDB.profiles) do
+        if data.modules and data.modules.TomTom ~= nil then
+            data.modules.TomTom = true
+        end
+    end
+
+    C:Debug(self, "Cobalt: TomTom enabled for all profiles.")
+end
+
 -- =====================================================
 -- Dev MANIFEST
 -- =====================================================
@@ -247,7 +260,29 @@ Dev.COMMAND_MANIFEST = {
     { name = "wm", func = "ToggleWarmodeModule", slash = "wm", desc = "Toggle warmode module."},
     { name = "elvui", func = "ResetElvProfileDB", slash = "elvui", desc = "Wipe elvui status/roster db."},
     { name = "purge", func = "PurgeCharacter", slash = "purge", desc = "Purge character from db."},
+    { name = "dmfstart", func = "EnableTomTomForAll", slash = "dmfstart", desc = "Force start TomTom module."},
 }
+
+-- In Dev.lua, Used in Panel.lua
+function Dev:ExecuteCommand(cmdKey)
+    local funcName = ""
+    -- Find the function name from the manifest based on the key/index
+    for _, cmd in ipairs(self.COMMAND_MANIFEST) do
+        if cmd.name == cmdKey then
+            funcName = cmd.func
+            break
+        end
+    end
+
+    local action = self[funcName]
+    if type(action) == "function" then
+        action(self)
+        C:Debug(self, "Executed Command: " .. cmdKey)
+    else
+        C:Print("|cffff0000Error:|r Dev function '" .. tostring(funcName) .. "' is missing!")
+    end
+end
+
 
 function Dev:SlashHandler(input)
     -- If no input, show help

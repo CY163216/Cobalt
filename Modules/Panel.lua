@@ -568,25 +568,41 @@ function Panel:UpdateDev(container)
     local btnAll = AceGUI:Create("Button")
     btnAll:SetText("Enable All")
     btnAll:SetRelativeWidth(0.5)
-    btnAll:SetCallback("OnClick", function() SetAllFilters(true) end)
     filterActions:AddChild(btnAll)
 
     local btnNone = AceGUI:Create("Button")
     btnNone:SetText("Disable All")
     btnNone:SetRelativeWidth(0.5)
-    btnNone:SetCallback("OnClick", function() SetAllFilters(false) end)
     filterActions:AddChild(btnNone)
 
-    -- The Module List
-    local modules = { ["Cobalt"] = C }
-    for name, module in C:IterateModules() do
-        modules[name] = module
-    end
-    for name, _ in pairs(modules) do
+    -- Simplified Buttons
+    btnAll:SetCallback("OnClick", function()
+        C:SetDebugFilter("ALL", true)
+        self:RefreshContent()
+    end)
+
+    btnNone:SetCallback("OnClick", function()
+        C:SetDebugFilter("ALL", false)
+        self:RefreshContent()
+    end)
+
+    -- Get the combined list (now includes "Cobalt")
+    local moduleData = C:GetModuleList()
+
+    -- Create a sorted list of names for consistent UI order
+    local sortedNames = {}
+    for name in pairs(moduleData) do table.insert(sortedNames, name) end
+    table.sort(sortedNames)
+
+    -- Draw the Filter Checkboxes
+    for _, name in ipairs(sortedNames) do
         local cb = AceGUI:Create("CheckBox")
         cb:SetLabel(name)
-        cb:SetRelativeWidth(0.5) -- Two columns
+        cb:SetRelativeWidth(0.5)
+
+        -- Use the unified dev filter table
         cb:SetValue(dev.moduleFilter[name] == true)
+
         cb:SetCallback("OnValueChanged", function(_, _, value)
             dev.moduleFilter[name] = value
             C:Debug(self, "Filter for " .. name .. " set to " .. tostring(value))
@@ -601,19 +617,17 @@ function Panel:UpdateDev(container)
     moduleToggleGroup:SetLayout("Flow")
     container:AddChild(moduleToggleGroup)
 
-    for name, module in C:IterateModules() do
+    local moduleToggles = C:GetModuleList()
+    for name, info in pairs(moduleToggles) do
         local mToggle = AceGUI:Create("CheckBox")
+        local module = info.obj
         mToggle:SetLabel("Enable " .. name)
         mToggle:SetRelativeWidth(0.5)
+        mToggle:SetValue(info.isEnabled)
 
-        -- Pull current state
-        mToggle:SetValue(module:IsEnabled())
-
-        -- Call the centralized function
         mToggle:SetCallback("OnValueChanged", function(_, _, value)
-            C:SetModuleState(module, value)
+            C:SetModuleState(module, value) -- Core handles the logic
         end)
-
         moduleToggleGroup:AddChild(mToggle)
     end
 
@@ -628,19 +642,18 @@ function Panel:UpdateDev(container)
         local btn = AceGUI:Create("Button")
         btn:SetText(cmd.name)
         btn:SetRelativeWidth(0.33)
+
+        -- UI just tells Dev to run the command
         btn:SetCallback("OnClick", function()
-            local action = Dev[cmd.func]
-            if type(action) == "function" then
-                action(Dev)
-                C:Debug(Dev, "Executed Command:", cmd.name)
-            else
-                C:Print(self, "|cffff0000Error:|r Function " .. tostring(cmd.func) .. " missing.")
-            end
+            Dev:ExecuteCommand(cmd.name)
         end)
+
         cmdGroup:AddChild(btn)
     end
 
     -- --- SECTION 4: APPLY & RELOAD ---
+    -- Optimization: Only show if changes were actually made?
+    -- For now, keep it simple but use a standard Cobalt method if you have one.
     local reloadBtn = AceGUI:Create("Button")
     reloadBtn:SetText("Apply Changes & Reload UI")
     reloadBtn:SetFullWidth(true)

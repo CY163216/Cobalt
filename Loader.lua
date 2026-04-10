@@ -692,6 +692,49 @@ function C:SetModuleState(module, state)
     C:Debug(self, string.format("%s: %s", name, statusText))
 end
 
+-- Used in Panel.lua
+function C:GetModuleList()
+    local list = {}
+
+    -- 1. Add the Core (Cobalt) as a virtual entry
+    list["Cobalt"] = {
+        obj = self,
+        isEnabled = true, -- Core is always enabled if this code is running
+        isSavedEnabled = true
+    }
+
+    for name, module in self:IterateModules() do
+        list[name] = {
+            obj = module,
+            isEnabled = module:IsEnabled(),
+            isSavedEnabled = self.database.profile.modules[name] ~= false
+        }
+    end
+    return list
+end
+
+-- Used in Panel.lua
+function C:SetAllModulesState(state)
+    for name, _ in self:IterateModules() do
+        self:SetModuleState(name, state)
+    end
+end
+
+-- Helper to handle the logic globally, Used in Panel.lua
+function C:SetDebugFilter(name, state)
+    self.database.profile.dev.moduleFilter = self.database.profile.dev.moduleFilter or {}
+
+    if name == "ALL" then
+        -- Toggle every module + the core
+        self.database.profile.dev.moduleFilter["Cobalt"] = state
+        for modName, _ in self:IterateModules() do
+            self.database.profile.dev.moduleFilter[modName] = state
+        end
+    else
+        self.database.profile.dev.moduleFilter[name] = state
+    end
+end
+
 function C:SlashHandler(input)
     -- Since 'C' (the main addon) has AceConsole-3.0, GetArgs works here!
     local command = self:GetArgs(input, 1)

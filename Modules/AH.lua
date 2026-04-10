@@ -47,7 +47,7 @@ function M:OnEnable()
     if self:IsCleared() then
         -- disable module, save it to profile
         C:Debug(self, "AH status: |cff00ff00Cleared|r, disabling.")
-        C:SetModuleState(self)
+        C:SetModuleState(self, false)
         return
     end
 

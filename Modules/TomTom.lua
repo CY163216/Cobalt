@@ -107,7 +107,7 @@ function TT:OnEnable()
         -- disable module, save it to profile
         self:ClearDMFWaypoints()
         C:Debug(self, "DMF inactive, clearing waypoints, disabling")
-        C:SetModuleState(self)
+        C:SetModuleState(self, false)
         return false
     end
 

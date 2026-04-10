@@ -11,6 +11,8 @@ WV.CAT_ORDER = {"Raid", "Dungeon", "World"}
 WV.THRESHOLDS = { ["Raid"] = {2, 4, 6}, ["Dungeon"] = {1, 4, 8}, ["World"] = {2, 4, 8} }
 
 function WV:Check(event, ...)
+    -- Ensure character meets level requirements
+    if C.mylevel < 90 then return end
     local charKey = C.mynameRealm
     if not charKey then return end
 
@@ -172,6 +174,16 @@ function WV:ShowVaultAlert()
 end
 
 function WV:OnEnable()
+    -- Check level requirement (e.g., 90)
+    if C.mylevel < 90 then
+        local charKey = C.mynameRealm
+        if charKey and C.DB.vault[charKey] then
+            C.DB.vault[charKey] = nil
+            C:Debug(self, "Character level below 90. Clearing Vault data and disabling module.")
+        end
+        return -- Exit early, effectively disabling the module for this session
+    end
+
     C:Debug(self, C.MODULE_ENABLED)
 
     self:RegisterEvent("WEEKLY_REWARDS_UPDATE", "Check")
