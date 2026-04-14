@@ -91,6 +91,21 @@ function TT:IsDMFActive()
     return C:CheckCalendarEvent(self, 479)
 end
 
+
+-- ##not used yet, need to clear all waypoints per character
+-- function TT:DisableTomTomForAll()
+--     -- Ensure CobaltDB and the profiles table exist
+--     if not CobaltDB or not CobaltDB.profiles then return end
+
+--     for _, data in pairs(CobaltDB.profiles) do
+--         if data.modules and data.modules.TomTom ~= nil then
+--             data.modules.TomTom = false
+--         end
+--     end
+
+--     C:Debug(self, "Cobalt: TomTom disabled for all profiles.")
+-- end
+
 function TT:HandleZoneChange()
     local MIDNIGHT_ZONES = {
         [407]  = true, -- Darkmoon Faire
@@ -106,7 +121,7 @@ function TT:OnEnable()
     if not self:IsDMFActive() then
         -- disable module, save it to profile
         self:ClearDMFWaypoints()
-        C:Debug(self, "DMF inactive, clearing waypoints, disabling")
+        -- C:Debug(self, "DMF inactive, clearing waypoints, disabling")
         C:SetModuleState(self, false)
         return false
     end

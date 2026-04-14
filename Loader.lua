@@ -606,6 +606,9 @@ function C:CheckAllCalendarEvents()
 end
 
 function C:CheckCalendarEvent(module, holidayNameOrID)
+    local holidayIDs = {
+        [479] = "Darkmoon Faire",
+    }
     local date = C_DateAndTime.GetCurrentCalendarTime()
     C_Calendar.SetAbsMonth(date.month, date.year)
 
@@ -629,7 +632,11 @@ function C:CheckCalendarEvent(module, holidayNameOrID)
             end
         end
     end
-    C:Debug(module, string.format("(%s) Holiday not found.", holidayNameOrID))
+
+    local result = holidayIDs[holidayNameOrID] and " - " .. holidayIDs[holidayNameOrID] or ""
+
+    C:Debug(module, string.format("[%s%s] Holiday not found.", holidayNameOrID, result))
+
     return false
 end
 
