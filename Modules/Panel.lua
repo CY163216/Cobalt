@@ -5,6 +5,7 @@ local DC = C:GetModule("Decor")
 local EP = C:GetModule("ElvProfile")
 local Dev = C:GetModule("Dev")
 local WV = C:GetModule("Vault")
+local REM = C:GetModule("Reminders")
 local AceGUI = C.Libs.AceGUI
 
 local _G = _G
@@ -36,6 +37,7 @@ local NAV_MENU = {
     { name = "Decor",      method = "UpdateDecor" },
     { name = "BindPad",    method = "UpdateBindPad" },
     { name = "ElvUI",      method = "UpdateElvProfile" },
+    { name = "Reminders",  method = "UpdateReminders" },
     { name = "Dev",        method = "UpdateDev" }
 }
 
@@ -797,6 +799,128 @@ function Panel:UpdateGeneral(container)
     container:AddChild(debugButton)
 end
 --#endregion
+
+--#region MARK: REMINDERS
+function Panel:UpdateReminders(container)
+    container:ReleaseChildren()
+
+    local currentName = C.mynameRealm
+    C.DB.reminders = C.DB.reminders or {}
+
+    -- --- SECTION 1: GLOBAL QUICK-ADD ---
+    local quickAddGroup = AceGUI:Create("InlineGroup")
+    quickAddGroup:SetTitle("|cffffaa00Add Reminder for Any Character|r")
+    quickAddGroup:SetFullWidth(true)
+    quickAddGroup:SetLayout("Flow")
+    container:AddChild(quickAddGroup)
+
+    local targetCharInput = AceGUI:Create("EditBox")
+    targetCharInput:SetLabel("Character-Realm")
+    targetCharInput:SetText(currentName)
+    targetCharInput:SetWidth(180)
+    quickAddGroup:AddChild(targetCharInput)
+
+    local noteInput = AceGUI:Create("EditBox")
+    noteInput:SetLabel("Reminder Text")
+    noteInput:SetWidth(200)
+    noteInput:SetCallback("OnEnterPressed", function(widget, event, text)
+        local target = targetCharInput:GetText()
+        if text ~= "" and target ~= "" then
+            C.DB.reminders[target] = C.DB.reminders[target] or {}
+            table.insert(C.DB.reminders[target], { text = text, hidden = false })
+            widget:SetText("")
+            if target == currentName then REM:UpdateDisplay() end
+            self:UpdateReminders(container)
+        end
+    end)
+    quickAddGroup:AddChild(noteInput)
+
+    -- --- SECTION 2: CHARACTER LISTINGS ---
+    local function RenderCharacterReminders(parent, name, isCurrent)
+        local group = AceGUI:Create("InlineGroup")
+        group:SetTitle(isCurrent and "|cff00ff00" .. name .. " (Current)|r" or "|cff00aaff" .. name .. "|r")
+        group:SetFullWidth(true)
+        group:SetLayout("List")
+        parent:AddChild(group)
+
+        -- Delete Character Section (Only for Alts)
+        if not isCurrent then
+            local headerRow = AceGUI:Create("SimpleGroup")
+            headerRow:SetFullWidth(true)
+            headerRow:SetLayout("Flow")
+            group:AddChild(headerRow)
+
+            local spacer = AceGUI:Create("Label")
+            spacer:SetWidth(170)
+            headerRow:AddChild(spacer)
+
+            local delCharBtn = AceGUI:Create("Button")
+            delCharBtn:SetText("|cffff0000Delete Character Section|r")
+            delCharBtn:SetWidth(130)
+            delCharBtn:SetCallback("OnClick", function()
+                C.DB.reminders[name] = nil
+                self:UpdateReminders(container)
+            end)
+            headerRow:AddChild(delCharBtn)
+        end
+
+        local notes = C.DB.reminders[name] or {}
+
+        if #notes == 0 then
+            local empty = AceGUI:Create("Label")
+            empty:SetText("|cff808080No reminders set.|r")
+            empty:SetFullWidth(true)
+            group:AddChild(empty)
+        else
+            for i, note in ipairs(notes) do
+                local row = AceGUI:Create("SimpleGroup")
+                row:SetFullWidth(true)
+                row:SetLayout("Flow")
+                group:AddChild(row)
+
+                local label = AceGUI:Create("Label")
+                label:SetText((note.hidden and "|cff808080" or "|cffffffff") .. note.text .. "|r")
+                label:SetWidth(170)
+                row:AddChild(label)
+
+                local hideBtn = AceGUI:Create("Button")
+                hideBtn:SetText(note.hidden and "Show" or "Hide")
+                hideBtn:SetWidth(65)
+                hideBtn:SetCallback("OnClick", function()
+                    note.hidden = not note.hidden
+                    if name == currentName then REM:UpdateDisplay() end
+                    self:UpdateReminders(container)
+                end)
+                row:AddChild(hideBtn)
+
+                local delBtn = AceGUI:Create("Button")
+                delBtn:SetText("X")
+                delBtn:SetWidth(50)
+                delBtn:SetCallback("OnClick", function()
+                    table.remove(notes, i)
+                    if name == currentName then REM:UpdateDisplay() end
+                    self:UpdateReminders(container)
+                end)
+                row:AddChild(delBtn)
+            end
+        end
+    end
+
+    -- Render Order
+    RenderCharacterReminders(container, currentName, true)
+
+    local sortedChars = {}
+    for name in pairs(C.DB.reminders) do
+        if name ~= currentName then table.insert(sortedChars, name) end
+    end
+    table.sort(sortedChars)
+
+    for _, name in ipairs(sortedChars) do
+        RenderCharacterReminders(container, name, false)
+    end
+end
+
+--#region
 
 -- Main Frame Construction
 function Panel:Create()

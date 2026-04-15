@@ -14,6 +14,7 @@
     <Script file="Modules\Minimap.lua"/>
     <Script file="Modules\Panel.lua"/>
     <Script file="Modules\Quests.lua"/>
+    <Script file="Modules\Reminders.lua"/>
     <Script file="Modules\SharedMedia.lua"/>
     <Script file="Modules\TomTom.lua"/>
     <Script file="Modules\Vault.lua"/>
