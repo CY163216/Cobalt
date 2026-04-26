@@ -339,38 +339,6 @@ C.DECOR_LUMBER_MAP = {
     [262501] = { type = C.LUMBER_DATA.THALASSIAN, count = 20 }, -- Simple Haranir Table
 }
 
-C.CLASS_MAINS = {
-    { class = "MAGE",         main = "Burin - Bloodhoof"    },
-    { class = "DEATHKNIGHT",  main = "Bari - Bloodhoof"     },
-    { class = "SHAMAN",       main = "Borr - Bloodhoof"     },
-    { class = "DEMONHUNTER",  main = "Mihoki - Argent Dawn" },
-    { class = "DRUID",        main = "Mokuroa - Moonglade"  },
-    { class = "WARRIOR",      main = "Jaiya - Bloodhoof"    },
-    { class = "MONK",         main = "Gurabu - Tarren Mill" },
-    { class = "PALADIN",      main = "Burr - Bloodhoof"     },
-    { class = "PRIEST",       main = "Jinrami - Silvermoon" },
-    { class = "EVOKER",       main = "Fiyonse - Silvermoon" },
-    { class = "ROGUE",        main = "Sumoka - Tarren Mill" },
-    { class = "HUNTER",       main = "Brokk - Bloodhoof"    },
-    { class = "WARLOCK",      main = "Kinbo - Tarren Mill"  },
-}
-
-C.CLASS_PRIORITY = {
-    ["MAGE"]         = C.CLASS_MAINS[1],
-    ["DEATHKNIGHT"]  = C.CLASS_MAINS[2],
-    ["SHAMAN"]       = C.CLASS_MAINS[3],
-    ["DEMONHUNTER"]  = C.CLASS_MAINS[4],
-    ["DRUID"]        = C.CLASS_MAINS[5],
-    ["WARRIOR"]      = C.CLASS_MAINS[6],
-    ["MONK"]         = C.CLASS_MAINS[7],
-    ["PALADIN"]      = C.CLASS_MAINS[8],
-    ["PRIEST"]       = C.CLASS_MAINS[9],
-    ["EVOKER"]       = C.CLASS_MAINS[10],
-    ["ROGUE"]        = C.CLASS_MAINS[11],
-    ["HUNTER"]       = C.CLASS_MAINS[12],
-    ["WARLOCK"]      = C.CLASS_MAINS[13],
-}
-
 C.TRACKED_QUESTS = {
     -- Darkmoon Faire: Primary Professions
     -- { name = "Alchemy | A Fizzy Fusion", id = 29506 },
