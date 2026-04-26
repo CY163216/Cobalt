@@ -4,6 +4,7 @@
 
     <Script file="Init.lua"/>
     <Script file="Loader.lua"/>
+    <Script file="Local.lua"/>
 
     <Script file="Modules\AH.lua"/>
     <Script file="Modules\BindPad.lua"/>
