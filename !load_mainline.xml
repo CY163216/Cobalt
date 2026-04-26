@@ -17,6 +17,7 @@
     <Script file="Modules\Reminders.lua"/>
     <Script file="Modules\SharedMedia.lua"/>
     <Script file="Modules\TomTom.lua"/>
+    <Script file="Modules\Transfer.lua"/>
     <Script file="Modules\Vault.lua"/>
     <Script file="Modules\Warmode.lua"/>
 

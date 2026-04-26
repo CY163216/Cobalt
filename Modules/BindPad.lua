@@ -13,8 +13,6 @@ local function GetBindPadKey(charKey)
 end
 
 function M:SyncBinds(force)
-    -- Initialize DB structure
-    C.DB.bindpad = C.DB.bindpad or { chars = {}, mainVersions = {}, forceSync = false, ignore = {} }
     local db = C.DB.bindpad
 
     local config = C.CLASS_PRIORITY[C.myclass]

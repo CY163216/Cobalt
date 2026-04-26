@@ -31,20 +31,51 @@ local UI_CONFIG = {
 }
 
 local NAV_MENU = {
-    -- { name = "General",    method = "UpdateGeneral" },
-    { name = "Vault",      method = "UpdateVault" },
-    { name = "Quests",     method = "UpdateQuests" },
-    { name = "Decor",      method = "UpdateDecor" },
-    { name = "BindPad",    method = "UpdateBindPad" },
-    { name = "ElvUI",      method = "UpdateElvProfile" },
-    { name = "Reminders",  method = "UpdateReminders" },
-    { name = "Dev",        method = "UpdateDev" }
+    -- { name = "General",      method = "UpdateGeneral" },
+    { name = "Vault",     method = "UpdateVault",               module = "Vault" },
+    { name = "Quests",    method = "UpdateQuests",              module = "Quests" },
+    { name = "Decor",     method = "UpdateDecor",               module = "Decor" },
+    { name = "BindPad",   method = "UpdateBindPad",             module = "BindPad" },
+    { name = "ElvUI",     method = "UpdateElvProfile",          module = "ElvProfile" },
+    { name = "Reminders", method = "UpdateReminders",           module = "Reminders" },
+    { name = "Inbox",     method = "UpdateTransferReceive",     module = "Transfer" },
+    { name = "Broadcast", method = "UpdateTransferSend",        module = "Dev" },
+    { name = "Dev",       method = "UpdateDev",                 module = "Dev" }
 }
-
 -- Content Management (The Dispatcher)
 function Panel:RefreshContent()
     if not self.contentFrame then return end
+
+    -- 1. Identify the valid active tab
+    -- We scan the menu to find if the current selection is valid/enabled.
+    -- If not, we default to the first enabled module we find.
+    local activeItem = nil
+    local firstEnabledItem = nil
+
+    for _, item in ipairs(NAV_MENU) do
+        local isEnabled = true
+        if item.module then
+            local mod = C:GetModule(item.module, true)
+            if not mod or not mod:IsEnabled() then
+                isEnabled = false
+            end
+        end
+
+        if isEnabled then
+            if not firstEnabledItem then firstEnabledItem = item end
+            if item.name == self.selectedTab then
+                activeItem = item
+            end
+        end
+    end
+
+    -- Update selection to the found item, or the first valid one, or a fallback
+    activeItem = activeItem or firstEnabledItem
+    self.selectedTab = activeItem and activeItem.name or "General"
+
+    -- 2. Clean and Setup the Frame
     self.contentFrame:ReleaseChildren()
+    self.contentFrame:SetTitle("Cobalt - " .. self.selectedTab)
 
     local scroll = AceGUI:Create("ScrollFrame")
     scroll:SetLayout("List")
@@ -52,22 +83,16 @@ function Panel:RefreshContent()
     scroll:SetFullWidth(true)
     self.contentFrame:AddChild(scroll)
 
-    local currentTab = self.selectedTab or "General"
-    self.contentFrame:SetTitle("Cobalt - " .. currentTab)
-
-    -- Refresh the sidebar buttons to update the disabled (greyed out) state
+    -- 3. Refresh the sidebar to show correct highlight/visibility
     self:UpdateNavigation()
 
-    local methodName = nil
-    for _, item in ipairs(NAV_MENU) do
-        if item.name == currentTab then methodName = item.method break end
-    end
-
-    if methodName and self[methodName] then
-        self[methodName](self, scroll)
+    -- 4. Dispatch to the specific module's draw function
+    if activeItem and self[activeItem.method] then
+        self[activeItem.method](self, scroll)
     else
         local label = AceGUI:Create("Label")
-        label:SetText("|cffff0000Error:|r Method for '" .. tostring(currentTab) .. "' not found.")
+        label:SetFullWidth(true)
+        label:SetText("\n|cffff0000Error:|r The module logic for '" .. self.selectedTab .. "' is missing or disabled.")
         scroll:AddChild(label)
     end
 end
@@ -78,25 +103,33 @@ function Panel:UpdateNavigation()
     self.sidebar:ReleaseChildren()
 
     for _, item in ipairs(NAV_MENU) do
-        local btn = AceGUI:Create("Button")
-        btn:SetText(item.name)
-        btn:SetWidth(UI_CONFIG.BUTTON_WIDTH)
-        if self.selectedTab == item.name then
-            btn.frame:SetHighlightLocked(true)
-        else
-            btn.frame:SetHighlightLocked(false)
+        -- CHECK: Does the module exist and is it enabled?
+        local isEnabled = true
+        if item.module then
+            local mod = C:GetModule(item.module, true) -- true = silent fail if not found
+            if not mod or not mod:IsEnabled() then
+                isEnabled = false
+            end
         end
 
-        btn:SetCallback("OnClick", function()
-            self.selectedTab = item.name
-            -- Module specific logic
-            -- if item.name == "Quests" then C:GetModule("QuestTracker"):UpdateQuestStatus() end
-            -- if item.name == "Vault" then C:GetModule("vault"):Check() end
-            -- if item.name == "Decor" then C:GetModule("Decor"):UpdateCounts() end
+        -- Only create the button if the module is enabled
+        if isEnabled then
+            local btn = AceGUI:Create("Button")
+            btn:SetText(item.name)
+            btn:SetWidth(UI_CONFIG.BUTTON_WIDTH)
 
-            self:RefreshContent()
-        end)
-        self.sidebar:AddChild(btn)
+            if self.selectedTab == item.name then
+                btn.frame:SetHighlightLocked(true)
+            else
+                btn.frame:SetHighlightLocked(false)
+            end
+
+            btn:SetCallback("OnClick", function()
+                self.selectedTab = item.name
+                self:RefreshContent()
+            end)
+            self.sidebar:AddChild(btn)
+        end
     end
 end
 
@@ -919,8 +952,133 @@ function Panel:UpdateReminders(container)
         RenderCharacterReminders(container, name, false)
     end
 end
-
 --#region
+
+--#region MARK: COBALT BROADCAST
+function Panel:UpdateTransferSend(container)
+    container:ReleaseChildren()
+
+    local TR = C:GetModule("Transfer")
+    local inGroup = IsInGroup()
+
+    local group = AceGUI:Create("InlineGroup")
+    group:SetTitle("|cff00aaffCobalt Net: Broadcast|r")
+    group:SetFullWidth(true)
+    group:SetLayout("Flow")
+    container:AddChild(group)
+
+    local labelInput = AceGUI:Create("EditBox")
+    labelInput:SetLabel("Payload Label")
+    labelInput:SetWidth(150)
+    labelInput:SetText("DATA")
+    group:AddChild(labelInput)
+
+    -- Changed to single-line EditBox per request
+    local dataInput = AceGUI:Create("EditBox")
+    dataInput:SetLabel("Paste encoded string here:")
+    dataInput:SetFullWidth(true)
+
+    -- Ensure input can handle the massive strings
+    if dataInput.editbox then
+        dataInput.editbox:SetMaxLetters(300000)
+    end
+    -- Hide "Okay" button for a cleaner input field
+    if dataInput.button then dataInput.button:Hide() end
+    group:AddChild(dataInput)
+
+    local sendBtn = AceGUI:Create("Button")
+    sendBtn:SetText(inGroup and "Broadcast to Group" or "Group Required")
+    sendBtn:SetFullWidth(true)
+    sendBtn:SetDisabled(not inGroup)
+    sendBtn:SetCallback("OnClick", function()
+        local label = labelInput:GetText()
+        local data = dataInput:GetText()
+        if data ~= "" then
+            TR:Send(label, data)
+            dataInput:SetText("")
+            C:Print(self, "Dispatching '" .. label .. "'...")
+        end
+    end)
+    group:AddChild(sendBtn)
+end
+--#endregion
+
+--#region MARK: COBALT INBOX
+function Panel:UpdateTransferReceive(container)
+    container:ReleaseChildren()
+
+    local currentName = C.mynameRealm
+    C.DB.transfer = C.DB.transfer or {}
+    local inbox = C.DB.transfer[currentName] or {}
+
+    local group = AceGUI:Create("InlineGroup")
+    group:SetTitle("|cff00ff00Cobalt Net: Inbox|r")
+    group:SetFullWidth(true)
+    group:SetLayout("List")
+    container:AddChild(group)
+
+    -- Single-line EditBox for copying
+    local copyBox = AceGUI:Create("EditBox")
+    copyBox:SetLabel("|cffffff00Extracted Content (Ctrl+C)|r")
+    copyBox:SetFullWidth(true)
+
+    -- Ensure the single line can hold the massive string
+    if copyBox.editbox then
+        copyBox.editbox:SetMaxLetters(300000)
+    end
+
+    if copyBox.button then copyBox.button:Hide() end
+
+    local hasData = false
+    local sortedLabels = {}
+    for label in pairs(inbox) do table.insert(sortedLabels, label) end
+    table.sort(sortedLabels)
+
+    for _, label in ipairs(sortedLabels) do
+        hasData = true
+        local entry = inbox[label]
+
+        local row = AceGUI:Create("SimpleGroup")
+        row:SetFullWidth(true)
+        row:SetLayout("Flow")
+        group:AddChild(row)
+
+        local info = AceGUI:Create("Label")
+        info:SetText("|cffffffff" .. label .. "|r")
+        info:SetWidth(160)
+        row:AddChild(info)
+
+        local copyBtn = AceGUI:Create("Button")
+        copyBtn:SetText("Copy")
+        copyBtn:SetWidth(90)
+        copyBtn:SetCallback("OnClick", function()
+            copyBox:SetText(entry.text)
+            copyBox:SetFocus()
+            if copyBox.editbox then
+                copyBox.editbox:HighlightText()
+            end
+        end)
+        row:AddChild(copyBtn)
+
+        local delBtn = AceGUI:Create("Button")
+        delBtn:SetText("Delete")
+        delBtn:SetWidth(90)
+        delBtn:SetCallback("OnClick", function()
+            inbox[label] = nil
+            self:RefreshContent()
+        end)
+        row:AddChild(delBtn)
+    end
+
+    if not hasData then
+        local empty = AceGUI:Create("Label")
+        empty:SetText("|cff808080No data in inbox.|r")
+        group:AddChild(empty)
+    else
+        group:AddChild(copyBox)
+    end
+end
+--#endregion
 
 -- Main Frame Construction
 function Panel:Create()
@@ -1001,8 +1159,6 @@ end
 
 function Panel:OnInitialize()
     C:Debug(self, C.MODULE_ENABLED)
-
-    C.DB.panel = C.DB.panel or { selectedTab = "Quests" }
     self:Create()
 
     -- Ensure it's hidden on login

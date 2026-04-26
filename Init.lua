@@ -8,7 +8,38 @@ local AddOnName, Engine = ...
 local C = AceAddon:NewAddon(Engine, AddOnName, "AceConsole-3.0", "AceEvent-3.0", "AceTimer-3.0", "AceHook-3.0")
 
 
-C.DF = {profile = { ["Warmode"] = false }, global = {}}; C.privateVars = {profile = {}} -- Defaults
+-- Add your module tables to the global defaults
+C.DF = {
+    profile = {
+        modules = {
+            ["AH"] = false,
+            ["BindPad"] = false,
+            ["Decor"] = false,
+            ["Dev"] = false,
+            ["ElvProfile"] = false,
+            ["Lumber"] = false,
+            ["Minimap"] = true,
+            ["Panel"] = true,
+            ["Quests"] = false,
+            ["Reminders"] = false,
+            ["SharedMedia"] = true,
+            ["TomTom"] = false,
+            ["Transfer"] = true,
+            ["Vault"] = false,
+            ["Warmode"] = false,
+        },
+    },
+    global = {
+        bindpad = { chars = {}, mainVersions = {}, forceSync = false, ignore = {} },
+        dev = {},
+        pins = {},
+        reminders = {},
+        transfer = {},
+        vault = {},
+    }
+}
+
+
 
 C.callbacks = C.callbacks or CallbackHandler:New(C)
 C.wowpatch, C.wowbuild, C.wowdate, C.wowtoc = GetBuildInfo()
@@ -27,6 +58,7 @@ C.SharedMedia       = C:NewModule("SharedMedia")
 C.Vault             = C:NewModule("Vault", "AceEvent-3.0")
 C.Warmode           = C:NewModule("Warmode", "AceEvent-3.0")
 C.TomTom            = C:NewModule("TomTom", "AceEvent-3.0")
+C.Transfer          = C:NewModule("Transfer", "AceEvent-3.0", "AceComm-3.0")
 C.Reminders         = C:NewModule("Reminders", "AceEvent-3.0")
 
 C.Libs      = {}

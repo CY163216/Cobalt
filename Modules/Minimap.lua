@@ -33,21 +33,6 @@ function M:OnInitialize()
     })
 end
 
-function M:HandleCommand(input)
-    local command = self:GetArgs(input, 1)
-    command = (command and command:lower()) or ""
-
-    -- If no argument is given, or they specifically say "toggle"
-    if command == "" or command == "toggle" then
-        P:Toggle()
-    elseif command == "help" then
-        C:Print("Usage: /cobalt [toggle | help]")
-    else
-        C:Print("Unknown command. Type /cobalt help for info.")
-    end
-end
-
-
 function M:OnEnable()
     C:Debug(self, C.MODULE_ENABLED)
 
@@ -57,10 +42,6 @@ function M:OnEnable()
     end
 
     LDBI:Refresh("Cobalt", C.DB.minimap)
-
-    C:RegisterChatCommand("cobalt", function(input)
-        self:HandleCommand(input)
-    end)
 end
 
 

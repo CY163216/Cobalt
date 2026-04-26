@@ -41,5 +41,6 @@ function M:OnInitialize()
 end
 
 function M:OnEnable()
+    C:Debug(self, C.MODULE_ENABLED)
     self:UpdateDisplay()
 end

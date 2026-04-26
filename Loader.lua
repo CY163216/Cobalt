@@ -743,19 +743,43 @@ function C:SetDebugFilter(name, state)
 end
 
 function C:SlashHandler(input)
-    -- Since 'C' (the main addon) has AceConsole-3.0, GetArgs works here!
     local command = self:GetArgs(input, 1)
     command = (command and command:lower()) or ""
 
-    if command == "toggle" or command == "" then
+    -- 1. DEV ENABLE
+    if command == "dev" then
+        local DevMod = self:GetModule("Dev", true)
+        if DevMod then
+            -- Note: Using your helper function which uses self.database
+            self:SetModuleState(DevMod, true)
+            C:Print(self, "Dev Mode |cff00ff00ENABLED|r. Reloading UI...")
+            ReloadUI()
+        else
+            C:Print(self, "Error: Dev module not found in Cobalt.")
+        end
+
+    -- 2. DEV DISABLE
+    elseif command == "devdisable" then
+        local DevMod = self:GetModule("Dev", true)
+        if DevMod then
+            self:SetModuleState(DevMod, false)
+            C:Print(self, "Dev Mode |cffff0000DISABLED|r. Reloading UI...")
+            ReloadUI()
+        else
+            C:Print(self, "Error: Dev module not found in Cobalt.")
+        end
+
+    -- 3. STANDARD TOGGLE / OPEN
+    elseif command == "toggle" or command == "" then
         local P = self:GetModule("Panel", true)
         if P and P.Toggle then
             P:Toggle()
         else
-            self:Print("Error: Panel module not found.")
+            C:Print(self, "Error: Panel module not found.")
         end
+
     else
-        self:Print("Usage: /cobalt [toggle]")
+        C:Print(self, "Usage: /cobalt [toggle | dev | devdisable]")
     end
 end
 --#endregion

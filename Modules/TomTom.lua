@@ -29,7 +29,7 @@ local DMF_LOCATIONS = {
 
 function TT:ClearDMFWaypoints()
     local charKey = C.mynameRealm
-    local charPins = C.DB.Pins[charKey]
+    local charPins = C.DB.pins[charKey]
     if not charPins then return end
     for i = #charPins, 1, -1 do
         TomTom:RemoveWaypoint(charPins[i])
@@ -76,7 +76,7 @@ function TT:ProfessionsDMF()
                 minimap_icon_size = 18,
                 worldmap_icon_size = 18,
             })
-            table.insert(C.DB.Pins[charKey], uid)
+            table.insert(C.DB.pins[charKey], uid)
             count = count + 1
         end
     end
@@ -128,9 +128,8 @@ function TT:OnEnable()
 
     C:Debug(self, C.MODULE_ENABLED)
 
-    C.DB.Pins = C.DB.Pins or {}
     local charKey = C.mynameRealm
-    C.DB.Pins[charKey] = C.DB.Pins[charKey] or {}
+    C.DB.pins[charKey] = C.DB.pins[charKey] or {}
 
     -- Register for zone changes and quest completions
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA", "HandleZoneChange")

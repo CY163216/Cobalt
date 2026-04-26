@@ -2,12 +2,12 @@ local C = select(2, ...)
 local M = C:GetModule("AH")
 
 function M:IsCleared()
-    return C.DB.AH and C.DB.AH[C.mynameRealm] == true
+    return C.DB.ah and C.DB.ah[C.mynameRealm] == true
 end
 
 function M:MarkAsDone(reason)
-    C.DB.AH = C.DB.AH or {}
-    C.DB.AH[C.mynameRealm] = true
+    C.DB.ah = C.DB.AH or {}
+    C.DB.ah[C.mynameRealm] = true
 
     self:UnregisterAllEvents()
 
