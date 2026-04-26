@@ -15,7 +15,7 @@ end
 function M:SyncBinds(force)
     local db = C.DB.bindpad
 
-    local config = C.CLASS_PRIORITY[C.myclass]
+    local config = C.LOCAL.CLASS_PRIORITY[C.myclass]
     if not config or not C.mynameRealm then
         C:Debug(self, "Missing config/name for class:", C.myclass)
         return
@@ -75,7 +75,7 @@ function M:SetupIgnoreList()
     C.DB.bindpad.ignore = C.DB.bindpad.ignore or {}
     local count = 0
 
-    for charKey, data in pairs(C.ROSTER) do
+    for charKey, data in pairs(C.LOCAL.ROSTER) do
         if data.roles and data.roles.banker and C.DB.bindpad.ignore[charKey] == nil then
             C.DB.bindpad.ignore[charKey] = true
             count = count + 1

@@ -93,7 +93,7 @@ end
 
 function Dev:SetupNewBindPadDB()
     C.DB.bindpad.mainVersions = {}
-    for _, data in ipairs(C.CLASS_MAINS) do
+    for _, data in ipairs(C.LOCAL.CLASS_MAINS) do
         local class = data.class
         C.DB.bindpad.mainVersions[class] = 1
     end
@@ -258,7 +258,7 @@ Dev.COMMAND_MANIFEST = {
     { name = "clean", func = "CleanupOldData", slash = "clean", desc = "Cleanup old database entries."},
     { name = "fake", func = "CreateFakeCharacter", slash = "fake", desc = "Create fake vault character."},
     { name = "wm", func = "ToggleWarmodeModule", slash = "wm", desc = "Toggle warmode module."},
-    { name = "elvui", func = "ResetElvProfileDB", slash = "elvui", desc = "Wipe elvui status/roster db."},
+    { name = "elvui", func = "ResetElvProfileDB", slash = "elvui", desc = "Wipe elvui status/LOCAL.ROSTER db."},
     { name = "purge", func = "PurgeCharacter", slash = "purge", desc = "Purge character from db."},
     { name = "dmfstart", func = "EnableTomTomForAll", slash = "dmfstart", desc = "Force start TomTom module."},
 }

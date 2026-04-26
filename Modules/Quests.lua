@@ -40,7 +40,7 @@ function M:CheckQuestStatus()
 
     local questName = "Crafter's Needed"
     local questCompleted = C.DB.quests[charKey][questName]
-    local isBanker = C.ROSTER[charKey].roles["banker"]
+    local isBanker = C.LOCAL.ROSTER[charKey].roles["banker"]
     if not questCompleted and not isBanker then
         C:Debug(self, "Quest alert popup window.")
         self:ShowQuestAlert()

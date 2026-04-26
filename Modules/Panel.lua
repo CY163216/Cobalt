@@ -226,7 +226,7 @@ end
 --#region MARK: BINDPAD SYNC TAB
 function Panel:UpdateBindPad(container)
     -- Instant lookup using your new static map
-    local config = C.CLASS_PRIORITY[C.myclass]
+    local config = C.LOCAL.CLASS_PRIORITY[C.myclass]
 
     -- --- SECTION 1: HEADER & STATUS ---
     local header = AceGUI:Create("Heading")
@@ -349,7 +349,7 @@ function Panel:UpdateBindPad(container)
     container:AddChild(versionGroup)
 
     -- Use ipairs on the array to ensure Mage (1) to Warlock (13) order
-    for _, data in ipairs(C.CLASS_MAINS) do
+    for _, data in ipairs(C.LOCAL.CLASS_MAINS) do
         local class = data.class
         local dbVersion = (C.DB.bindpad.mainVersions and C.DB.bindpad.mainVersions[class]) or 1
         local classColor = RAID_CLASS_COLORS[class] and RAID_CLASS_COLORS[class].colorStr or "ffffffff"

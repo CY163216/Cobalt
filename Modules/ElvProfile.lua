@@ -37,7 +37,7 @@ function M:CheckAndSetProfiles()
 
     -- 1. INITIAL SETUP: Only runs if DB is empty/false
     if not currentSaved or currentSaved == "" then
-        local isMain = C.ROSTER[nameKey] and C.ROSTER[nameKey].roles.main
+        local isMain = C.LOCAL.ROSTER[nameKey] and C.LOCAL.ROSTER[nameKey].roles.main
         local target = isMain and DEFAULT_PROFILES.MAIN or DEFAULT_PROFILES.ALT
 
         -- Update the Cobalt DB regardless

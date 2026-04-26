@@ -537,7 +537,7 @@ end
 
 -- Usage: if C:HasRole(C.mynameRealm, role) then ...
 function C:HasRole(charKey, roleName)
-    local char = self.ROSTER[charKey]
+    local char = self.LOCAL.ROSTER[charKey]
     return char and char.roles and char.roles[roleName] or false
 end
 
